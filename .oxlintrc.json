@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["firebase", "firebase/*"],
+                "message": "Nao chame o Firebase em arquivos de UI. Isole Auth, Firestore e Storage em src/services."
+              },
+              {
+                "group": ["**/services/api/mock/**", "**/services/api/mock"],
+                "message": "UI nao acessa o mock. Use o API client e os hooks."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
