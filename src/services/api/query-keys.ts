@@ -4,6 +4,7 @@ export const queryKeys = {
   dashboard: ['fleet', 'dashboard'] as const,
   users: ['fleet', 'users'] as const,
   garages: ['fleet', 'garages'] as const,
+  clients: ['fleet', 'clients'] as const,
   vehicles: ['fleet', 'vehicles'] as const,
   plates: ['fleet', 'plates'] as const,
   devices: ['fleet', 'devices'] as const,

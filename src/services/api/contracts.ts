@@ -9,6 +9,7 @@ import type {
   CreatePlateInput,
   CreateUserInput,
   CreateVehicleInput,
+  ClientCompany,
   DashboardSummary,
   Device,
   ExportFile,
@@ -53,6 +54,7 @@ export const restContract = {
   createUser: { method: 'POST', path: '/users' },
   garages: { method: 'GET', path: '/garages' },
   createGarage: { method: 'POST', path: '/garages' },
+  clients: { method: 'GET', path: '/clients' },
   vehicles: { method: 'GET', path: '/vehicles' },
   createVehicle: { method: 'POST', path: '/vehicles' },
   plates: { method: 'GET', path: '/plates' },
@@ -123,6 +125,7 @@ export interface FleetApi {
   createUser(input: CreateUserInput): Promise<User>
   listGarages(): Promise<Garage[]>
   createGarage(input: CreateGarageInput): Promise<Garage>
+  listClients(): Promise<ClientCompany[]>
   listVehicles(): Promise<Vehicle[]>
   createVehicle(input: CreateVehicleInput): Promise<Vehicle>
   listPlates(): Promise<Plate[]>

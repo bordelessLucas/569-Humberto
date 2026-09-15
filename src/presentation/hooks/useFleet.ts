@@ -57,6 +57,10 @@ export function useGarages() {
   return useQuery({ queryKey: queryKeys.garages, queryFn: () => api.listGarages() })
 }
 
+export function useClients() {
+  return useQuery({ queryKey: queryKeys.clients, queryFn: () => api.listClients() })
+}
+
 export function useVehicles() {
   return useQuery({ queryKey: queryKeys.vehicles, queryFn: () => api.listVehicles() })
 }

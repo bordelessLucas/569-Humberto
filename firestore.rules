@@ -1,8 +1,78 @@
 rules_version = '2';
+
+// Fase de teste: qualquer usuário autenticado lê/escreve.
+// Próximo endurecimento: regras por papel (admin / operador / auditor / gestor).
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /meta/{docId} {
+      allow read, write: if signedIn();
+    }
+
+    // Domínio operacional (inclui clients e periodHistory da reestruturação)
+    match /users/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /clients/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /garages/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /vehicles/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /plates/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /devices/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /cameras/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /connections/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /recordings/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /transfers/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /syncRuns/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /periodHistory/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /files/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /segments/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /processingJobs/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /integrityIssues/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /cameraAudits/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /alerts/{docId} {
+      allow read, write: if signedIn();
+    }
+    match /activity/{docId} {
+      allow read, write: if signedIn();
+    }
+
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

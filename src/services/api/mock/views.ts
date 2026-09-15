@@ -11,21 +11,25 @@ import type {
   UpdateVehicleInput,
   VehicleDetail,
 } from '../../../domain/types.ts'
+import { lastGarageForVehicle } from '../../../domain/last-garage.ts'
 import { ApiError } from '../errors.ts'
 import { getState, pushActivity, stamp, type FleetStore } from './store.ts'
 
 export function vehicleDetail(id: string): VehicleDetail {
   const store = getState()
   const vehicle = must(store.vehicles, id, 'Veículo não encontrado.')
-  const garage = must(store.garages, vehicle.garageId, 'Garagem não encontrada.')
+  const client = must(store.clients, vehicle.clientId, 'Cliente não encontrado.')
+  const lastSeenGarage = lastGarageForVehicle(store, vehicle)
   return {
     vehicle: structuredClone(vehicle),
     plate: store.plates.find((item) => item.vehicleId === id && item.active)?.value ?? '—',
-    garage: structuredClone(garage),
+    client: structuredClone(client),
+    lastSeenGarage: lastSeenGarage ? structuredClone(lastSeenGarage) : null,
     device: structuredClone(store.devices.find((item) => item.vehicleId === id) ?? null),
     cameras: structuredClone(store.cameras.filter((item) => item.vehicleId === id)),
     activity: structuredClone(store.activity.filter((item) => item.vehicleId === id)),
     connections: structuredClone(store.connections.filter((item) => item.vehicleId === id)),
+    periodHistory: structuredClone(store.periodHistory.filter((item) => item.vehicleId === id)),
   }
 }
 
@@ -93,15 +97,16 @@ export function updateUser(id: string, input: UpdateUserInput) {
 export function updateVehicle(id: string, input: UpdateVehicleInput) {
   const store = getState()
   const vehicle = must(store.vehicles, id, 'Veículo não encontrado.')
-  must(store.garages, input.garageId, 'Garagem não encontrada.')
+  must(store.clients, input.clientId, 'Cliente não encontrado.')
   const plateValue = input.plate.trim().toUpperCase()
   const plate = store.plates.find((item) => item.vehicleId === id && item.active)
   if (store.plates.some((item) => item.value === plateValue && item.active && item.vehicleId !== id)) {
     throw new ApiError(409, 'Placa já cadastrada.')
   }
   vehicle.name = input.name.trim()
-  vehicle.garageId = input.garageId
+  vehicle.clientId = input.clientId
   vehicle.fleetNumber = input.fleetNumber.trim()
+  vehicle.active = input.active
   if (plate) plate.value = plateValue
   else store.plates.push({ id: `plt-${id}`, vehicleId: id, value: plateValue, active: true })
   return vehicleDetail(id)

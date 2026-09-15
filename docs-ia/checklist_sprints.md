@@ -1,48 +1,46 @@
 # Checklist de sprints
 
-A ordem antiga, que ia direto para Firebase Auth e cadastro no Firestore, foi substituída pelo contrato REST. O mock cobre o escopo funcional. A produção troca a implementação, não a tela.
+O painel funcional está no ar localmente, com Tailwind e persistência no Firestore. As telas não mudam quando o banco mudar. O PostgreSQL substitui `src/services/database/`. O modo `real` continua reservado ao backend.
 
-## Sprint 0 — Setup
+Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent → histórico → dashboard → cadastros → relatórios → robustez → novos adapters.
 
-- [x] Vite + React + TypeScript estrito
-- [x] Pastas de apresentação, domínio e serviços
-- [x] Firebase isolado em `src/services/firebase.ts`, fora do fluxo de dados
-- [x] Memory bank
+## Feito
 
-## Sprint 1b — Perfis e 21 telas
+- [x] Vite + React + TypeScript estrito, Tailwind, TanStack Query
+- [x] Administrador, Operador, Auditor e Gestor, com matriz de acesso e 21 rotas
+- [x] Contrato REST, cliente HTTP e mock
+- [x] Firestore como banco desta fase, com Auth por e-mail. Senha fora do banco
+- [x] Perfis de teste `admin@lock.com`, `operador@lock.com`, `auditor@lock.com`, `gestor@lock.com`
+- [x] Modo demonstração da chegada do Caminhão 17
+- [x] Interface em preto, branco, cinza e vermelho, com a logo no quadro da sidebar
+- [x] Dashboard admin: KPIs, visão de garagens e relatório do dia (ainda com dados mock)
+- [x] **Etapa 1 — domínio:** `ClientCompany`, veículo sem base fixa (`lastSeenGarageId`), `DownloadSessionStatus` / `sessionStatus`, `VehiclePeriodHistory`, clientes Light/Enel, retenção automática desligada
+- [x] **Etapa 2 — esqueleto:** `src/services/edge/` com `DeviceAdapter`, registry e adapter `pending-first-mdvr` (falha até datasheet; sem protocolo inventado)
+- [x] **Etapa 3 — histórico (modelo):** seed + detalhe do veículo com períodos/backlog; dashboard considera backlog no relatório do dia
+- [x] **Etapa 4 — dashboard alinhado ao domínio:** cliente, última base, backlog; **não** ligado a eventos reais do agente
 
-- [x] Administrador, Operador, Auditor e Gestor, com matriz de acesso
-- [x] Rotas do painel, da conexão ao player, sem módulo separado de placa
-- [x] Fila com pausa, retomada e nova tentativa. Sem botão de converter MP4
-- [x] Auditoria de câmeras com lacuna da CAM02
-- [x] Logo Lock Brasil e tokens alinhados à marca
+## Bloqueado / próximo
 
-## Sprint 1 — Contrato, mock e demonstração
+### Edge Agent com hardware (continua Etapa 2)
 
-- [x] Contratos REST em `src/services/api/contracts.ts`
-- [x] Cliente HTTP pronto para o mesmo contrato
-- [x] Mock API, dados simulados e TanStack Query
-- [x] Modo demonstração: chegada, fila, interrupção, retomada, MP4, 15 min, auditoria, lacuna, alerta, arquivo disponível
-- [x] Telas dos blocos de captura e de processamento, lendo só o API client
+- [ ] Datasheet / SDK / API / CMS do primeiro MDVR (TRX-904 ou o que o cliente confirmar)
+- [ ] Implementar o primeiro `DeviceAdapter` real
+- [ ] Serviço deployável na LAN da base (descoberta → download → disco → eventos)
 
-## Sprint 2 — Ajuste com o cliente
+### Etapas 5–8
 
-- [ ] Rodar a demonstração com o cliente e corrigir o fluxo que ele não reconhecer
-- [ ] Fechar papel Operador, prazo de retenção, formato de exportação e se o vídeo é stream ou download
-- [ ] Confirmar datasheet, SDK, API ou CMS do TRX-904
+- [ ] Cadastros e autorização endurecidos (papel Operador validado; regras Firestore por papel)
+- [ ] Relatórios com filtros e exportação
+- [ ] Robustez (retry, retomada, multi-veículo)
+- [ ] Novos adapters
 
-## Sprint 3 — Backend real
+### Paralelo (painel / infra)
 
-- [ ] Implementar os mesmos paths do contrato
-- [ ] Autorização no backend
-- [ ] PostgreSQL para cadastro, histórico, índice e relatórios
-- [ ] Fila de trabalho no servidor
-- [ ] WebSocket em `/realtime` com os tipos de evento já nomeados no contrato
-- [ ] Trocar `VITE_API_MODE` para `real`
-
-## Sprint 4 — Garagem e equipamento
-
-- [ ] Agente na rede da garagem
-- [ ] Storage real, FFmpeg e FFprobe
-- [ ] DeviceAdapter
-- [ ] Integração TRX-904, só depois da confirmação do fabricante
+- [ ] Rodar a demonstração com o cliente e corrigir o fluxo
+- [ ] Fechar retenção, proteção de arquivo, visão admin de todas as bases
+- [ ] Fechar exportação, canal de alerta, stream vs download no painel
+- [ ] Restringir `firestore.rules` por coleção e papel
+- [ ] Impedir que o reinício da demo apague cadastro feito na mão
+- [ ] Desativar usuário também no Firebase Auth
+- [ ] Publicar o SPA
+- [ ] Trocar banco para PostgreSQL só depois do alinhamento (contrato REST estável)

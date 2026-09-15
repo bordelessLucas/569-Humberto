@@ -1,5 +1,6 @@
 export type UserRole = 'admin' | 'operador' | 'auditor' | 'gestor'
 
+/** Estados resumidos do veículo no painel (derivados da última sessão). */
 export type OperationalStatus =
   | 'desconectado'
   | 'conectado'
@@ -8,6 +9,22 @@ export type OperationalStatus =
   | 'pendente'
   | 'erro'
   | 'interrompido'
+  | 'nao_autorizado'
+  | 'parcial'
+
+/** Estados da sessão de download na base (máquina recomendada no contexto). */
+export type DownloadSessionStatus =
+  | 'detectado'
+  | 'aguardando_validacao'
+  | 'nao_autorizado'
+  | 'pendente'
+  | 'na_fila'
+  | 'baixando'
+  | 'pausado'
+  | 'interrompido'
+  | 'parcial'
+  | 'concluido'
+  | 'erro'
 
 export type TransferStatus =
   | 'na_fila'
@@ -16,6 +33,8 @@ export type TransferStatus =
   | 'interrompido'
   | 'concluido'
   | 'erro'
+
+export type PeriodSyncStatus = 'disponivel' | 'pendente' | 'baixado' | 'falhou' | 'parcial'
 
 export type ConnectionStatus = 'ativa' | 'encerrada'
 
@@ -65,6 +84,7 @@ export type ActivityType =
   | 'file.available'
   | 'retention.ran'
   | 'user.created'
+  | 'download.unauthorized'
 
 export interface User {
   id: string
@@ -80,6 +100,14 @@ export interface Session {
   expiresAt: string
 }
 
+/** Empresa/cliente operacional (Light, Enel, futuros). Não usar sufixo na placa. */
+export interface ClientCompany {
+  id: string
+  name: string
+  code: string
+  active: boolean
+}
+
 export interface Garage {
   id: string
   name: string
@@ -87,15 +115,22 @@ export interface Garage {
   wifiSsid: string
 }
 
+/**
+ * Veículo é independente de base.
+ * A base da operação fica em Connection / SyncRun / DownloadSession / MediaFile.
+ */
 export interface Vehicle {
   id: string
-  garageId: string
+  clientId: string
   name: string
   fleetNumber: string
+  active: boolean
   operationalStatus: OperationalStatus
   lastConnectionAt: string | null
   lastSyncAt: string | null
   lastJobMinutes: number | null
+  /** Última base em que foi visto — informativo, não vínculo permanente. */
+  lastSeenGarageId: string | null
 }
 
 export interface Plate {
@@ -161,6 +196,7 @@ export interface Transfer {
   origin: DataOrigin
 }
 
+/** Sessão de download: veículo X na base Y em um momento. */
 export interface SyncRun {
   id: string
   vehicleId: string
@@ -168,11 +204,31 @@ export interface SyncRun {
   startedAt: string
   finishedAt: string | null
   status: SyncStatus
+  sessionStatus: DownloadSessionStatus
+  unauthorizedReason: string | null
   recordingsFound: number
   pending: number
   downloaded: number
   failed: number
   origin: DataOrigin
+}
+
+/**
+ * Histórico incremental por período/câmera.
+ * Permite backlog quando o veículo fica dias sem visitar a base.
+ */
+export interface VehiclePeriodHistory {
+  id: string
+  vehicleId: string
+  cameraId: string
+  periodStart: string
+  periodEnd: string
+  status: PeriodSyncStatus
+  lastGarageId: string | null
+  lastAttemptAt: string | null
+  completedAt: string | null
+  bytesDownloaded: number
+  notes: string | null
 }
 
 export interface MediaFile {
@@ -283,12 +339,40 @@ export interface DashboardVehicleRow {
   vehicleId: string
   name: string
   plate: string
+  fleetNumber: string
+  clientId: string
+  clientName: string
+  garageId: string | null
+  garageName: string
   status: OperationalStatus
   camerasReady: number
   camerasTotal: number
   durationMinutes: number | null
   progress: number | null
   lastUpdate: string | null
+}
+
+export interface DashboardGarageRow {
+  garageId: string
+  name: string
+  city: string
+  vehicles: number
+  concluded: number
+  downloading: number
+  pending: number
+  withError: number
+}
+
+export interface DashboardDailyFailure {
+  garageId: string
+  garageName: string
+  fleetNumber: string
+  clientName: string
+  vehicleId: string
+  vehicleName: string
+  plate: string
+  reason: string
+  at: string | null
 }
 
 export interface DashboardSummary {
@@ -305,7 +389,10 @@ export interface DashboardSummary {
   segments15: number
   storageUsedPercent: number
   updatedAt: string
+  reportDate: string
   vehicles: DashboardVehicleRow[]
+  garages: DashboardGarageRow[]
+  dailyFailures: DashboardDailyFailure[]
 }
 
 export interface OperationsReport {
@@ -344,6 +431,8 @@ export interface ReportQuery {
   from: string
   to: string
   vehicleId?: string
+  garageId?: string
+  clientId?: string
 }
 
 export interface LoginInput {
@@ -365,11 +454,16 @@ export interface CreateGarageInput {
 }
 
 export interface CreateVehicleInput {
-  garageId: string
+  clientId: string
   name: string
   plate: string
   fleetNumber: string
   deviceId?: string
+}
+
+export interface CreateClientInput {
+  name: string
+  code: string
 }
 
 export interface CreatePlateInput {
@@ -406,9 +500,10 @@ export interface UpdateUserInput {
 
 export interface UpdateVehicleInput {
   name: string
-  garageId: string
+  clientId: string
   fleetNumber: string
   plate: string
+  active: boolean
 }
 
 export interface UpdateDeviceInput {
@@ -439,11 +534,13 @@ export interface SystemSettings {
 export interface VehicleDetail {
   vehicle: Vehicle
   plate: string
-  garage: Garage
+  client: ClientCompany
+  lastSeenGarage: Garage | null
   device: Device | null
   cameras: Camera[]
   activity: Activity[]
   connections: Connection[]
+  periodHistory: VehiclePeriodHistory[]
 }
 
 export interface SyncDetail {

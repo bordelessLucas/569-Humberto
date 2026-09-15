@@ -66,6 +66,7 @@ async function applyStep(store: FleetStore, stepId: string): Promise<void> {
     const at = stamp(store)
     vehicle.operationalStatus = 'conectado'
     vehicle.lastConnectionAt = at
+    vehicle.lastSeenGarageId = DEMO_GARAGE_ID
     device.lastSeenAt = at
     store.connections.unshift({
       id: 'con-17-a',
@@ -109,12 +110,15 @@ async function applyStep(store: FleetStore, stepId: string): Promise<void> {
       startedAt: stamp(store),
       finishedAt: null,
       status: 'em_andamento',
+      sessionStatus: 'baixando',
+      unauthorizedReason: null,
       recordingsFound: 42,
       pending: 0,
       downloaded: 0,
       failed: 0,
       origin: 'simulado',
     })
+    vehicle.lastSeenGarageId = DEMO_GARAGE_ID
     pushActivity(store, {
       type: 'recordings.discovered',
       vehicleId: vehicle.id,

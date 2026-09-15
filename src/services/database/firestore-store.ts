@@ -7,9 +7,11 @@ import { getState, onStoreDirty, replaceState, type FleetStore } from '../api/mo
 import { ApiError } from '../api/errors.ts'
 import { DEMO_PASSWORD } from '../api/mode.ts'
 import { getFirebaseApp } from '../firebase.ts'
+import type { Vehicle } from '../../domain/types.ts'
 
 const ENTITIES = [
   'users',
+  'clients',
   'garages',
   'vehicles',
   'plates',
@@ -19,6 +21,7 @@ const ENTITIES = [
   'recordings',
   'transfers',
   'syncRuns',
+  'periodHistory',
   'files',
   'segments',
   'processingJobs',
@@ -184,11 +187,38 @@ async function hydrate(): Promise<void> {
   if (demo) next.demo = demo
   next.credentials = []
   next.session = null
+  migrateDomainShape(next)
   replaceState(next)
+}
+
+/** Compatibilidade com documentos gravados antes da reestruturação do domínio. */
+function migrateDomainShape(store: FleetStore): void {
+  if (store.clients.length === 0) {
+    store.clients = createSeed().clients
+  }
+  for (const vehicle of store.vehicles) {
+    const legacy = vehicle as Vehicle & { garageId?: string }
+    if (!legacy.clientId) legacy.clientId = 'client-enel'
+    if (legacy.active === undefined) legacy.active = true
+    if (legacy.lastSeenGarageId === undefined) {
+      legacy.lastSeenGarageId = typeof legacy.garageId === 'string' ? legacy.garageId : null
+    }
+    delete legacy.garageId
+  }
+  for (const sync of store.syncRuns) {
+    if (!sync.sessionStatus) {
+      sync.sessionStatus =
+        sync.status === 'concluida' ? 'concluido' : sync.status === 'falha' ? 'erro' : sync.status === 'interrompida' ? 'interrompido' : 'baixando'
+    }
+    if (sync.unauthorizedReason === undefined) sync.unauthorizedReason = null
+  }
+  if (!store.periodHistory) store.periodHistory = []
+  store.storagePolicy.autoDelete = false
 }
 
 function assignRows(store: FleetStore, key: EntityKey, rows: FleetStore[EntityKey]): void {
   if (key === 'users') store.users = rows as FleetStore['users']
+  else if (key === 'clients') store.clients = rows as FleetStore['clients']
   else if (key === 'garages') store.garages = rows as FleetStore['garages']
   else if (key === 'vehicles') store.vehicles = rows as FleetStore['vehicles']
   else if (key === 'plates') store.plates = rows as FleetStore['plates']
@@ -198,6 +228,7 @@ function assignRows(store: FleetStore, key: EntityKey, rows: FleetStore[EntityKe
   else if (key === 'recordings') store.recordings = rows as FleetStore['recordings']
   else if (key === 'transfers') store.transfers = rows as FleetStore['transfers']
   else if (key === 'syncRuns') store.syncRuns = rows as FleetStore['syncRuns']
+  else if (key === 'periodHistory') store.periodHistory = rows as FleetStore['periodHistory']
   else if (key === 'files') store.files = rows as FleetStore['files']
   else if (key === 'segments') store.segments = rows as FleetStore['segments']
   else if (key === 'processingJobs') store.processingJobs = rows as FleetStore['processingJobs']

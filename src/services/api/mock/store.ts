@@ -3,6 +3,7 @@ import type {
   Alert,
   Camera,
   CameraAudit,
+  ClientCompany,
   Connection,
   DemoState,
   Device,
@@ -21,6 +22,7 @@ import type {
   Transfer,
   User,
   Vehicle,
+  VehiclePeriodHistory,
 } from '../../../domain/types.ts'
 import { createSeed } from './seed.ts'
 
@@ -34,6 +36,7 @@ export interface FleetStore {
   users: User[]
   credentials: Credential[]
   session: Session | null
+  clients: ClientCompany[]
   garages: Garage[]
   vehicles: Vehicle[]
   plates: Plate[]
@@ -43,6 +46,7 @@ export interface FleetStore {
   recordings: Recording[]
   transfers: Transfer[]
   syncRuns: SyncRun[]
+  periodHistory: VehiclePeriodHistory[]
   files: MediaFile[]
   segments: Segment[]
   processingJobs: ProcessingJob[]

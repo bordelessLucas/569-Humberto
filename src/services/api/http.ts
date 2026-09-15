@@ -20,6 +20,7 @@ export function createHttpApi(): FleetApi {
     createUser: (input) => request(restContract.createUser.method, restContract.createUser.path, input),
     listGarages: () => request(restContract.garages.method, restContract.garages.path),
     createGarage: (input) => request(restContract.createGarage.method, restContract.createGarage.path, input),
+    listClients: () => request(restContract.clients.method, restContract.clients.path),
     listVehicles: () => request(restContract.vehicles.method, restContract.vehicles.path),
     createVehicle: (input) => request(restContract.createVehicle.method, restContract.createVehicle.path, input),
     listPlates: () => request(restContract.plates.method, restContract.plates.path),

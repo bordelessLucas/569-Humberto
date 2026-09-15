@@ -81,3 +81,7 @@ O que o MVP não faz, de propósito: detectar o Wi-Fi, baixar do TRX-904, conver
 - Disco primário dos vídeos
 
 Esses itens dependem do agente da garagem e, hoje, da confirmação de SDK/API do fabricante. O modelo de dados do painel já prevê os eventos; a integração com o gravador não está liberada.
+
+## Próximos passos
+
+A lista fechada está em `docs-ia/checklist_sprints.md`. Pendente, nesta ordem: alinhar as lacunas com o cliente, endurecer o Firestore desta fase, trocar o adaptador para PostgreSQL e só então abrir a sprint do equipamento.

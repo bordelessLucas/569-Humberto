@@ -13,6 +13,7 @@ import type {
   ReportQuery,
   StoragePolicy,
 } from '../../../domain/types.ts'
+import { lastGarageForVehicle } from '../../../domain/last-garage.ts'
 import type { FleetApi } from '../contracts.ts'
 import { ApiError } from '../errors.ts'
 import { getState, pushActivity, rememberSession, stamp, type FleetStore } from './store.ts'
@@ -78,6 +79,11 @@ export function createMockApi(): FleetApi {
       await wait()
       requireSession()
       return structuredClone(getState().garages)
+    },
+    async listClients() {
+      await wait()
+      requireSession()
+      return structuredClone(getState().clients)
     },
     async createGarage(input) {
       await wait()
@@ -371,20 +377,22 @@ function createGarage(input: CreateGarageInput) {
 
 function createVehicle(input: CreateVehicleInput) {
   const store = getState()
-  find(store.garages, input.garageId, 'Garagem não encontrada.')
+  find(store.clients, input.clientId, 'Cliente não encontrado.')
   const plateValue = input.plate.trim().toUpperCase()
   if (store.plates.some((item) => item.value === plateValue && item.active)) {
     throw new ApiError(409, 'Placa já cadastrada.')
   }
   const vehicle = {
     id: nextId('veh'),
-    garageId: input.garageId,
+    clientId: input.clientId,
     name: input.name.trim(),
     fleetNumber: input.fleetNumber.trim(),
+    active: true,
     operationalStatus: 'desconectado' as const,
     lastConnectionAt: null,
     lastSyncAt: null,
     lastJobMinutes: null,
+    lastSeenGarageId: null,
   }
   store.vehicles.push(vehicle)
   store.plates.push({ id: nextId('plt'), vehicleId: vehicle.id, value: plateValue, active: true })
@@ -504,7 +512,10 @@ function filterFiles(store: FleetStore, query: FileQuery | undefined): MediaFile
 }
 
 function buildDashboard(store: FleetStore): DashboardSummary {
+  const reportDate = '2026-09-14'
   const vehicles = store.vehicles.map((vehicle) => {
+    const garage = lastGarageForVehicle(store, vehicle)
+    const client = store.clients.find((item) => item.id === vehicle.clientId)
     const cameras = store.cameras.filter((item) => item.vehicleId === vehicle.id)
     const transfer = store.transfers.find(
       (item) => item.vehicleId === vehicle.id && (item.status === 'baixando' || item.status === 'interrompido'),
@@ -514,6 +525,11 @@ function buildDashboard(store: FleetStore): DashboardSummary {
       vehicleId: vehicle.id,
       name: vehicle.name,
       plate: plate?.value ?? '—',
+      fleetNumber: vehicle.fleetNumber,
+      clientId: vehicle.clientId,
+      clientName: client?.name ?? '—',
+      garageId: garage?.id ?? null,
+      garageName: garage?.name ?? 'Sem base recente',
       status: vehicle.operationalStatus,
       camerasReady: cameras.filter((item) => item.online).length,
       camerasTotal: cameras.length,
@@ -524,6 +540,54 @@ function buildDashboard(store: FleetStore): DashboardSummary {
   })
   const count = (status: DashboardSummary['vehicles'][number]['status']) =>
     store.vehicles.filter((item) => item.operationalStatus === status).length
+
+  const garages = store.garages.map((garage) => {
+    const fleet = store.vehicles.filter((item) => lastGarageForVehicle(store, item)?.id === garage.id)
+    const byStatus = (status: DashboardSummary['vehicles'][number]['status']) =>
+      fleet.filter((item) => item.operationalStatus === status).length
+    return {
+      garageId: garage.id,
+      name: garage.name,
+      city: garage.city,
+      vehicles: fleet.length,
+      concluded: byStatus('concluido'),
+      downloading: byStatus('baixando'),
+      pending: byStatus('pendente'),
+      withError: byStatus('erro'),
+    }
+  })
+
+  const dailyFailures = vehicles
+    .filter((row) => {
+      if (row.status === 'erro' || row.status === 'pendente') return true
+      return store.periodHistory.some(
+        (item) => item.vehicleId === row.vehicleId && (item.status === 'pendente' || item.status === 'falhou'),
+      )
+    })
+    .map((row) => {
+      const backlog = store.periodHistory.filter(
+        (item) => item.vehicleId === row.vehicleId && (item.status === 'pendente' || item.status === 'falhou'),
+      ).length
+      let reason =
+        row.status === 'erro' ? 'Não baixou o vídeo (com erro)' : 'Não baixou o vídeo (pendente)'
+      if (backlog > 0 && row.status !== 'erro' && row.status !== 'pendente') {
+        reason = `${backlog} período(s) em backlog (histórico incremental)`
+      } else if (backlog > 1) {
+        reason = `${reason} · ${backlog} períodos em backlog`
+      }
+      return {
+        garageId: row.garageId ?? 'sem-base',
+        garageName: row.garageName,
+        fleetNumber: row.fleetNumber,
+        clientName: row.clientName,
+        vehicleId: row.vehicleId,
+        vehicleName: row.name,
+        plate: row.plate,
+        reason,
+        at: row.lastUpdate,
+      }
+    })
+
   return {
     concluded: count('concluido'),
     downloading: count('baixando'),
@@ -538,7 +602,10 @@ function buildDashboard(store: FleetStore): DashboardSummary {
     segments15: store.segments.length,
     storageUsedPercent: Math.round((store.storageStatus.usedBytes / store.storageStatus.capacityBytes) * 100),
     updatedAt: new Date().toISOString(),
+    reportDate,
     vehicles,
+    garages,
+    dailyFailures,
   }
 }
 

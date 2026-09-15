@@ -40,6 +40,10 @@ export function createSeed(): FleetStore {
       { userId: 'user-gestor', password: 'borderless' },
     ],
     session: null,
+    clients: [
+      { id: 'client-light', name: 'Light', code: 'LIGHT', active: true },
+      { id: 'client-enel', name: 'Enel', code: 'ENEL', active: true },
+    ],
     garages: [
       {
         id: DEMO_GARAGE_ID,
@@ -55,12 +59,12 @@ export function createSeed(): FleetStore {
       },
     ],
     vehicles: [
-      vehicle('veh-01', 'garage-centro', 'Caminhão 01', 'concluido', '07:12', '07:40', 860),
-      vehicle('veh-02', 'garage-centro', 'Caminhão 02', 'baixando', '07:36', null, null),
-      vehicle('veh-03', 'garage-norte', 'Caminhão 03', 'pendente', '06:50', null, null),
-      vehicle('veh-04', 'garage-centro', 'Caminhão 04', 'erro', '07:05', null, null),
-      vehicle('veh-05', 'garage-norte', 'Caminhão 05', 'concluido', '05:40', '06:10', 540),
-      vehicle('veh-17', DEMO_GARAGE_ID, 'Caminhão 17', 'desconectado', null, null, null),
+      vehicle('veh-01', 'client-enel', 'garage-centro', 'Caminhão 01', 'concluido', '07:12', '07:40', 860),
+      vehicle('veh-02', 'client-enel', 'garage-centro', 'Caminhão 02', 'baixando', '07:36', null, null),
+      vehicle('veh-03', 'client-light', 'garage-norte', 'Caminhão 03', 'pendente', '06:50', null, null),
+      vehicle('veh-04', 'client-enel', 'garage-centro', 'Caminhão 04', 'erro', '07:05', null, null),
+      vehicle('veh-05', 'client-light', 'garage-norte', 'Caminhão 05', 'concluido', '05:40', '06:10', 540),
+      vehicle('veh-17', 'client-enel', null, 'Caminhão 17', 'desconectado', null, null, null),
     ],
     plates: [
       plate('plt-01', 'veh-01', 'ABC1D23'),
@@ -123,6 +127,8 @@ export function createSeed(): FleetStore {
         startedAt: at('07:12'),
         finishedAt: at('07:40'),
         status: 'concluida',
+        sessionStatus: 'concluido',
+        unauthorizedReason: null,
         recordingsFound: 18,
         pending: 0,
         downloaded: 18,
@@ -136,12 +142,24 @@ export function createSeed(): FleetStore {
         startedAt: at('07:05'),
         finishedAt: at('07:18'),
         status: 'falha',
+        sessionStatus: 'erro',
+        unauthorizedReason: null,
         recordingsFound: 9,
         pending: 6,
         downloaded: 2,
         failed: 1,
         origin: 'simulado',
       },
+    ],
+    periodHistory: [
+      period('hist-01', 'veh-01', 'cam-veh-01-1', '2026-09-13T00:00:00-03:00', '2026-09-13T23:59:59-03:00', 'baixado', 'garage-centro', '07:40'),
+      period('hist-02', 'veh-01', 'cam-veh-01-2', '2026-09-13T00:00:00-03:00', '2026-09-13T23:59:59-03:00', 'baixado', 'garage-centro', '07:40'),
+      period('hist-03', 'veh-03', 'cam-veh-03-1', '2026-09-12T00:00:00-03:00', '2026-09-12T23:59:59-03:00', 'pendente', 'garage-norte', '06:50'),
+      period('hist-04', 'veh-03', 'cam-veh-03-1', '2026-09-13T00:00:00-03:00', '2026-09-13T23:59:59-03:00', 'pendente', 'garage-norte', '06:50'),
+      period('hist-05', 'veh-04', 'cam-veh-04-1', '2026-09-14T00:00:00-03:00', '2026-09-14T07:00:00-03:00', 'falhou', 'garage-centro', '07:18'),
+      period('hist-06', 'veh-17', 'cam-veh-17-1', '2026-09-11T00:00:00-03:00', '2026-09-11T23:59:59-03:00', 'baixado', 'garage-centro', null),
+      period('hist-07', 'veh-17', 'cam-veh-17-1', '2026-09-12T00:00:00-03:00', '2026-09-12T23:59:59-03:00', 'pendente', null, null),
+      period('hist-08', 'veh-17', 'cam-veh-17-1', '2026-09-13T00:00:00-03:00', '2026-09-13T23:59:59-03:00', 'pendente', null, null),
     ],
     files: [
       file({
@@ -253,7 +271,7 @@ export function createSeed(): FleetStore {
     },
     storagePolicy: {
       retentionDays: 90,
-      autoDelete: true,
+      autoDelete: false,
       alertThresholdPercent: 85,
     },
     settings: {
@@ -263,7 +281,7 @@ export function createSeed(): FleetStore {
       alertOnCapacity: true,
       retentionDays: 90,
       integrationStatus: 'aguardando_fabricante',
-      integrationNote: 'TRX-904 sem SDK, API ou CMS confirmado. O painel não inicia conversão manual.',
+      integrationNote: 'Aguardando datasheet do primeiro MDVR. Exclusão de vídeo é manual nesta fase. Vídeos não sobem para a nuvem.',
     },
     activity: [
       {
@@ -298,7 +316,8 @@ export function createSeed(): FleetStore {
 
 function vehicle(
   id: string,
-  garageId: string,
+  clientId: string,
+  lastSeenGarageId: string | null,
   name: string,
   operationalStatus: FleetStore['vehicles'][number]['operationalStatus'],
   connected: string | null,
@@ -307,13 +326,40 @@ function vehicle(
 ): FleetStore['vehicles'][number] {
   return {
     id,
-    garageId,
+    clientId,
     name,
+    active: true,
     operationalStatus,
     lastConnectionAt: connected ? at(connected) : null,
     lastSyncAt: synced ? at(synced) : null,
     lastJobMinutes,
     fleetNumber: id.replace('veh-', ''),
+    lastSeenGarageId,
+  }
+}
+
+function period(
+  id: string,
+  vehicleId: string,
+  cameraId: string,
+  periodStart: string,
+  periodEnd: string,
+  status: FleetStore['periodHistory'][number]['status'],
+  lastGarageId: string | null,
+  completed: string | null,
+): FleetStore['periodHistory'][number] {
+  return {
+    id,
+    vehicleId,
+    cameraId,
+    periodStart,
+    periodEnd,
+    status,
+    lastGarageId,
+    lastAttemptAt: completed ? at(completed) : null,
+    completedAt: status === 'baixado' && completed ? at(completed) : null,
+    bytesDownloaded: status === 'baixado' ? 480_000_000 : 0,
+    notes: status === 'pendente' ? 'Backlog aguardando retorno à base' : null,
   }
 }
 

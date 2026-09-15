@@ -1,6 +1,10 @@
 export type StatusTone = 'success' | 'info' | 'warning' | 'danger' | 'neutral'
 
 const labels: Record<string, { label: string; tone: StatusTone }> = {
+  nao_autorizado: { label: 'Não autorizado', tone: 'danger' },
+  parcial: { label: 'Parcial', tone: 'warning' },
+  baixado: { label: 'Baixado', tone: 'success' },
+  falhou: { label: 'Falhou', tone: 'danger' },
   concluido: { label: 'Concluído', tone: 'success' },
   baixando: { label: 'Baixando', tone: 'info' },
   pendente: { label: 'Pendente', tone: 'warning' },
