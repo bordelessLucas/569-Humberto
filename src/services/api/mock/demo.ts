@@ -95,7 +95,7 @@ async function applyStep(store: FleetStore, stepId: string): Promise<void> {
     pushActivity(store, {
       type: 'recordings.discovered',
       vehicleId: vehicle.id,
-      message: '3 câmeras encontradas no TRX-904 do Caminhão 17.',
+      message: '4 câmeras encontradas no MC904 do Caminhão 17.',
     })
     return
   }
@@ -374,7 +374,7 @@ async function applyStep(store: FleetStore, stepId: string): Promise<void> {
     pushActivity(store, {
       type: 'audit.completed',
       vehicleId: vehicle.id,
-      message: 'Auditoria das 3 câmeras concluída.',
+      message: 'Auditoria das 4 câmeras concluída.',
     })
     return
   }

@@ -492,6 +492,42 @@ export interface AssignDeviceInput {
   vehicleId: string
 }
 
+/** Dispara o fluxo de chegada na base (Wi-Fi → download → disco local). */
+export interface GarageIngestInput {
+  garageId: string
+  vehicleId: string
+}
+
+export type GarageIngestPhase =
+  | 'idle'
+  | 'detectando'
+  | 'identificando'
+  | 'validando'
+  | 'descobrindo'
+  | 'na_fila'
+  | 'baixando'
+  | 'concluido'
+  | 'nao_autorizado'
+  | 'erro'
+
+export interface GarageIngestStatus {
+  garageId: string
+  garageName: string
+  vehicleId: string | null
+  vehicleName: string | null
+  plate: string | null
+  deviceSerial: string | null
+  phase: GarageIngestPhase
+  progress: number
+  message: string
+  syncRunId: string | null
+  filesStored: number
+  origin: DataOrigin
+  updatedAt: string
+  /** Análise por terceiros não é responsabilidade do Full Lock. */
+  outOfScopeNote: string
+}
+
 export interface UpdateUserInput {
   name: string
   role: UserRole

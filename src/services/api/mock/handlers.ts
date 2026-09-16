@@ -14,6 +14,7 @@ import type {
   StoragePolicy,
 } from '../../../domain/types.ts'
 import { lastGarageForVehicle } from '../../../domain/last-garage.ts'
+import { getGarageIngestStatus, startGarageIngest } from '../../edge/pipeline.ts'
 import type { FleetApi } from '../contracts.ts'
 import { ApiError } from '../errors.ts'
 import { getState, pushActivity, rememberSession, stamp, type FleetStore } from './store.ts'
@@ -318,6 +319,16 @@ export function createMockApi(): FleetApi {
       await wait()
       requireAdmin()
       return writeSettings(input)
+    },
+    async getGarageIngestStatus() {
+      await wait()
+      requireSession()
+      return getGarageIngestStatus()
+    },
+    async startGarageIngest(input) {
+      await wait()
+      requireOperator()
+      return startGarageIngest(input)
     },
   }
 }

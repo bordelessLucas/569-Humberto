@@ -14,22 +14,34 @@ Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent �
 - [x] Modo demonstração da chegada do Caminhão 17
 - [x] Interface em preto, branco, cinza e vermelho, com a logo no quadro da sidebar
 - [x] Dashboard admin: KPIs, visão de garagens e relatório do dia (ainda com dados mock)
-- [x] **Etapa 1 — domínio:** `ClientCompany`, veículo sem base fixa (`lastSeenGarageId`), `DownloadSessionStatus` / `sessionStatus`, `VehiclePeriodHistory`, clientes Light/Enel, retenção automática desligada
-- [x] **Etapa 2 — esqueleto:** `src/services/edge/` com `DeviceAdapter`, registry e adapter `pending-first-mdvr` (falha até datasheet; sem protocolo inventado)
-- [x] **Etapa 3 — histórico (modelo):** seed + detalhe do veículo com períodos/backlog; dashboard considera backlog no relatório do dia
-- [x] **Etapa 4 — dashboard alinhado ao domínio:** cliente, última base, backlog; **não** ligado a eventos reais do agente
+- [x] **Etapa 1 — domínio:** `ClientCompany`, veículo sem base fixa, histórico incremental, retenção auto desligada
+- [x] **Manuais MC904:** confirmado que é o MDVR **do veículo** (MettaX), não o roteador da garagem
+- [x] **Etapa 2 — adapter parcial:** `src/services/edge/adapters/mettax-mc904.ts` com capacidades do datasheet (`ready: false` até API de transferência)
+- [x] Seed/UI alinhados a modelo **MC904** e 4 câmeras
+- [x] **Etapa 3 — histórico (modelo):** seed + detalhe do veículo; dashboard considera backlog
+- [x] **Pipeline de chegada:** Wi-Fi → identificar → validar → pendências → download (simulado) → disco da base → dashboard (`GarageArrivalPanel`)
+- [x] Fronteira explícita: análise por terceiros **fora do escopo**
+- [x] Arquitetura oficial Agent outbound (`analise_arquitetura_garage_agent.md`)
+- [x] Spec `agent-api@v1` + stub Docker documentada (`spec_agent_api_v1_stub.md`) — sem JT/T
 
 ## Bloqueado / próximo
 
-### Edge Agent com hardware (continua Etapa 2)
+### Edge Agent — stub Docker (agora)
 
-- [ ] Datasheet / SDK / API / CMS do primeiro MDVR (TRX-904 ou o que o cliente confirmar)
-- [ ] Implementar o primeiro `DeviceAdapter` real
-- [ ] Serviço deployável na LAN da base (descoberta → download → disco → eventos)
+- [ ] Implementar pasta `agent/` + Dockerfile + cliente do contrato (`spec_agent_api_v1_stub.md`)
+- [ ] Mock da API (`activate` / `heartbeat` / `events` / `commands`)
+- [ ] Stub: ciclo simulado + volume `/data/garage-media` + pause/resume/force
+
+### Edge Agent — transferência real (depois do stub)
+
+- [ ] Spec/SDK/API **JT/T1078** (ou CMS MettaX) — spike
+- [ ] Hardware MC904 na LAN para validar descoberta/transferência
+- [ ] Serviço deployável de produção na base
+- [ ] Esclarecer se “TRX-904” é o mesmo que MC904
 
 ### Etapas 5–8
 
-- [ ] Cadastros e autorização endurecidos (papel Operador validado; regras Firestore por papel)
+- [ ] Cadastros e autorização endurecidos
 - [ ] Relatórios com filtros e exportação
 - [ ] Robustez (retry, retomada, multi-veículo)
 - [ ] Novos adapters
@@ -43,4 +55,4 @@ Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent �
 - [ ] Impedir que o reinício da demo apague cadastro feito na mão
 - [ ] Desativar usuário também no Firebase Auth
 - [ ] Publicar o SPA
-- [ ] Trocar banco para PostgreSQL só depois do alinhamento (contrato REST estável)
+- [ ] Trocar banco para PostgreSQL só depois do alinhamento

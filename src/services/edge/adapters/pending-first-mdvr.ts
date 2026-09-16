@@ -1,25 +1,26 @@
+/**
+ * Placeholder legado — substituído pelo adapter MettaX MC904.
+ * Mantido no registry para não quebrar referências antigas a `pending-first-mdvr`.
+ */
+
 import { AdapterNotReadyError, type DeviceAdapter, type DeviceDiscoveryHint, type DiscoveredDevice, type DownloadChunkResult, type RemoteRecordingRef } from '../device-adapter.ts'
 
-/**
- * Placeholder do primeiro adapter.
- * Não inventa FTP/SMB/HTTP/SDK. Só existe para o registry e para falhar de forma clara.
- */
 export const pendingFirstMdvrAdapter: DeviceAdapter = {
   id: 'pending-first-mdvr',
-  manufacturer: 'aguardando_cliente',
-  models: ['pendente'],
+  manufacturer: 'legado',
+  models: ['use-mettax-mc904'],
   ready: false,
 
   async discover(_hint: DeviceDiscoveryHint): Promise<DiscoveredDevice[]> {
-    throw new AdapterNotReadyError('pending-first-mdvr')
+    throw new AdapterNotReadyError('pending-first-mdvr', 'Use o adapter mettax-mc904.')
   },
 
   async identify(_device: DiscoveredDevice) {
-    throw new AdapterNotReadyError('pending-first-mdvr')
+    throw new AdapterNotReadyError('pending-first-mdvr', 'Use o adapter mettax-mc904.')
   },
 
   async listRecordings(_device: DiscoveredDevice, _since: string | null): Promise<RemoteRecordingRef[]> {
-    throw new AdapterNotReadyError('pending-first-mdvr')
+    throw new AdapterNotReadyError('pending-first-mdvr', 'Use o adapter mettax-mc904.')
   },
 
   async download(
@@ -28,6 +29,6 @@ export const pendingFirstMdvrAdapter: DeviceAdapter = {
     _localPath: string,
     _resumeOffsetBytes: number,
   ): Promise<DownloadChunkResult> {
-    throw new AdapterNotReadyError('pending-first-mdvr')
+    throw new AdapterNotReadyError('pending-first-mdvr', 'Use o adapter mettax-mc904.')
   },
 }

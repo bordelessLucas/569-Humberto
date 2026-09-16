@@ -36,6 +36,11 @@ const labels: Record<string, { label: string; tone: StatusTone }> = {
   gravacao_faltante: { label: 'Gravação faltante', tone: 'danger' },
   simulado: { label: 'Simulado', tone: 'neutral' },
   equipamento: { label: 'Equipamento', tone: 'info' },
+  detectando: { label: 'Detectando Wi-Fi', tone: 'info' },
+  identificando: { label: 'Identificando', tone: 'info' },
+  validando: { label: 'Validando', tone: 'info' },
+  descobrindo: { label: 'Descobrindo pendências', tone: 'info' },
+  idle: { label: 'Aguardando', tone: 'neutral' },
 }
 
 export function statusMeta(value: string): { label: string; tone: StatusTone } {

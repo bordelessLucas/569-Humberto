@@ -22,4 +22,5 @@ export const queryKeys = {
   storage: ['fleet', 'storage'] as const,
   activity: ['fleet', 'activity'] as const,
   demo: ['fleet', 'demo'] as const,
+  ingest: ['fleet', 'ingest'] as const,
 }

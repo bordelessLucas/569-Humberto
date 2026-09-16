@@ -1,7 +1,9 @@
+import { mettaxMc904Adapter } from './adapters/mettax-mc904.ts'
 import { pendingFirstMdvrAdapter } from './adapters/pending-first-mdvr.ts'
 import type { DeviceAdapter } from './device-adapter.ts'
 
-const adapters: DeviceAdapter[] = [pendingFirstMdvrAdapter]
+/** MettaX MC904 é o primeiro alvo; o placeholder legado permanece só para compatibilidade. */
+const adapters: DeviceAdapter[] = [mettaxMc904Adapter, pendingFirstMdvrAdapter]
 
 export function listDeviceAdapters(): DeviceAdapter[] {
   return [...adapters]

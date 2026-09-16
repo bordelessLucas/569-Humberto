@@ -66,6 +66,8 @@ export function createHttpApi(): FleetApi {
     resolveIssue: (id) => request(restContract.resolveIssue.method, withId(restContract.resolveIssue.path, id)),
     getSettings: () => request(restContract.settings.method, restContract.settings.path),
     updateSettings: (input) => request(restContract.updateSettings.method, restContract.updateSettings.path, input),
+    getGarageIngestStatus: () => request(restContract.edgeIngestStatus.method, restContract.edgeIngestStatus.path),
+    startGarageIngest: (input) => request(restContract.startGarageIngest.method, restContract.startGarageIngest.path, input),
   }
 }
 

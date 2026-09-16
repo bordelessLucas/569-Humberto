@@ -71,11 +71,11 @@ A placa é atributo do veículo, não um módulo.
 
 Cada ponto dos dois blocos do cliente tem lugar no contrato e uma versão simulada no painel. Login, garagens, veículos, placas, MDVR, câmeras, IP/MAC, entrada e saída, conexões, consulta de gravações, pendentes, fila, prioridade, progresso, retomada, tentativas, histórico, organização, índice, MP4, original, corte de 15 minutos, nome, sequência, integridade, arquivo corrompido, lacunas, auditoria, pesquisa, relatórios, exportação, retenção, exclusão, arquivo protegido, alerta de capacidade e atualização da tela.
 
-O que o MVP não faz, de propósito: detectar o Wi-Fi, baixar do TRX-904, converter com FFmpeg ou gravar no disco da garagem. Isso aparece como `origin: simulado`. Em produção a origem passa a ser o equipamento, no mesmo contrato.
+O que o MVP não faz, de propósito: detectar o Wi-Fi, baixar do MC904 (MettaX), converter com FFmpeg ou gravar no disco da garagem. Isso aparece como `origin: simulado`. Em produção a origem passa a ser o equipamento, no mesmo contrato.
 
 ## Fora do SPA
 
-- Varredura de Wi-Fi, IP/MAC e protocolo do TRX-904
+- Varredura de Wi-Fi, IP/MAC e protocolo do MC904 (candidato JT/T1078; manuais em `arquivosContext/`)
 - Download binário e retomada no equipamento
 - FFmpeg (conversão e corte)
 - Disco primário dos vídeos

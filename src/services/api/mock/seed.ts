@@ -4,7 +4,7 @@ import type { FleetStore } from './store.ts'
 export const DEMO_STEPS: DemoState['steps'] = [
   { id: 'arrive', label: 'Simular chegada', done: false },
   { id: 'connected', label: 'Caminhão 17 conectado', done: false },
-  { id: 'cameras', label: '3 câmeras encontradas', done: false },
+  { id: 'cameras', label: '4 câmeras encontradas', done: false },
   { id: 'recordings', label: '42 gravações identificadas', done: false },
   { id: 'pending', label: '17 pendentes', done: false },
   { id: 'queue', label: 'Fila criada', done: false },
@@ -75,12 +75,12 @@ export function createSeed(): FleetStore {
       plate('plt-17', 'veh-17', 'RXT4C17'),
     ],
     devices: [
-      device('dev-01', 'veh-01', 'TRX904-0108', '10.20.1.8', 'AA:10:20:00:01:08', '07:12'),
-      device('dev-02', 'veh-02', 'TRX904-0214', '10.20.2.14', 'AA:10:20:00:02:14', '07:36'),
-      device('dev-03', 'veh-03', 'TRX904-0302', '10.20.3.2', 'AA:10:20:00:03:02', '06:50'),
-      device('dev-04', 'veh-04', 'TRX904-0419', '10.20.4.19', 'AA:10:20:00:04:19', '07:05'),
-      device('dev-05', 'veh-05', 'TRX904-0507', '10.20.5.7', 'AA:10:20:00:05:07', '05:40'),
-      device(DEMO_DEVICE_ID, DEMO_VEHICLE_ID, 'TRX904-1704', '10.20.17.4', 'AA:10:20:00:17:04', null),
+      device('dev-01', 'veh-01', 'MC904-0108', '10.20.1.8', 'AA:10:20:00:01:08', '07:12'),
+      device('dev-02', 'veh-02', 'MC904-0214', '10.20.2.14', 'AA:10:20:00:02:14', '07:36'),
+      device('dev-03', 'veh-03', 'MC904-0302', '10.20.3.2', 'AA:10:20:00:03:02', '06:50'),
+      device('dev-04', 'veh-04', 'MC904-0419', '10.20.4.19', 'AA:10:20:00:04:19', '07:05'),
+      device('dev-05', 'veh-05', 'MC904-0507', '10.20.5.7', 'AA:10:20:00:05:07', '05:40'),
+      device(DEMO_DEVICE_ID, DEMO_VEHICLE_ID, 'MC904-1704', '10.20.17.4', 'AA:10:20:00:17:04', null),
     ],
     cameras: [
       ...camerasFor('veh-01', 'dev-01', true),
@@ -378,7 +378,7 @@ function device(
   return {
     id,
     vehicleId,
-    model: 'TRX-904',
+    model: 'MC904',
     serial,
     firmware: '2.1.4',
     ip,
@@ -392,6 +392,7 @@ function camerasFor(vehicleId: string, deviceId: string, online: boolean): Fleet
     { id: `cam-${vehicleId}-1`, vehicleId, deviceId, name: 'CAM01 Frontal', position: 'frontal', online },
     { id: `cam-${vehicleId}-2`, vehicleId, deviceId, name: 'CAM02 Cabine', position: 'cabine', online },
     { id: `cam-${vehicleId}-3`, vehicleId, deviceId, name: 'CAM03 Traseira', position: 'traseira', online },
+    { id: `cam-${vehicleId}-4`, vehicleId, deviceId, name: 'CAM04 Lateral', position: 'lateral', online },
   ]
 }
 

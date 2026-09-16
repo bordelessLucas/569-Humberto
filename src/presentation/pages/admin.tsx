@@ -79,12 +79,12 @@ export function DevicesPage() {
         {canEdit ? (
           <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => {
             event.preventDefault()
-            createDevice.mutate({ model: 'TRX-904', serial, firmware: '2.1.4', ip, mac }, { onSuccess: () => { setSerial(''); setMac(''); setIp('') } })
+            createDevice.mutate({ model: 'MC904', serial, firmware: '2.1.4', ip, mac }, { onSuccess: () => { setSerial(''); setMac(''); setIp('') } })
           }}>
             <label>Serial<input value={serial} onChange={(event) => setSerial(event.target.value)} required /></label>
             <label>MAC<input value={mac} onChange={(event) => setMac(event.target.value)} required /></label>
             <label>IP<input value={ip} onChange={(event) => setIp(event.target.value)} required /></label>
-            <button className="btn btn-primary" type="submit">Cadastrar TRX-904</button>
+            <button className="btn btn-primary" type="submit">Cadastrar MC904</button>
           </form>
         ) : <p className="text-sm leading-6 text-ink-muted">Somente leitura.</p>}
         <QueryState isLoading={devices.isLoading} error={devices.error}>

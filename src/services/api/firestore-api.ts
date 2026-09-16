@@ -48,6 +48,7 @@ export function createFirestoreApi(): FleetApi {
     setTransferPriority: (id, priority) => saved(() => mock.setTransferPriority(id, priority)),
     resolveIssue: (id) => saved(() => mock.resolveIssue(id)),
     updateSettings: (input) => saved(() => mock.updateSettings(input)),
+    startGarageIngest: (input) => saved(() => mock.startGarageIngest(input)),
   }
 }
 

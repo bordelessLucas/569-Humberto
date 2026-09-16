@@ -11,28 +11,54 @@ export function DemoPanel({
   onStart: () => void
   onReset: () => void
 }) {
+  const steps = state?.steps ?? []
+  const doneCount = steps.filter((step) => step.done).length
+
   return (
-    <section className="rounded-2xl border border-line bg-white p-5" aria-label="Modo demonstração">
+    <section className="rounded-lg border border-dashed border-line bg-white p-5" aria-label="Modo demonstração">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold tracking-tight">Modo demonstração</h2>
-          <p className="mt-1 max-w-xl text-sm leading-6 text-ink-muted">Chegada do Caminhão 17, da conexão até o arquivo disponível.</p>
+        <div className="min-w-0 max-w-xl">
+          <p className="text-[11px] font-medium tracking-wide text-ink-muted">Demonstração</p>
+          <h2 className="mt-1 text-pretty text-base font-semibold tracking-tight text-ink">Roteiro do Caminhão 17</h2>
+          <p className="mt-1 text-sm leading-6 text-ink-muted">
+            Percurso guiado da conexão ao arquivo disponível — separado da ingestão operacional da base.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn btn-primary" onClick={onStart} disabled={running}>
-            {running ? 'Em andamento' : 'Simular chegada'}
+          <button type="button" className="btn btn-primary" onClick={onStart} disabled={running} aria-busy={running}>
+            {running ? 'Em andamento…' : 'Simular chegada'}
           </button>
           <button type="button" className="btn btn-secondary" onClick={onReset} disabled={running}>
             Reiniciar
           </button>
         </div>
       </div>
-      <ol className="mt-4 flex flex-wrap gap-1.5">
-        {(state?.steps ?? []).map((step, index) => {
+
+      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-ink-muted">
+        <span>
+          Progresso do roteiro:{' '}
+          <span className="font-medium tabular-nums text-ink">
+            {doneCount}/{steps.length || '—'}
+          </span>
+        </span>
+        {running ? <span className="font-medium text-brand">Rodando</span> : null}
+      </div>
+
+      <ol className="scroll-hidden mt-3 flex gap-1.5 overflow-x-auto pb-1">
+        {steps.map((step, index) => {
           const current = state?.status === 'running' && state.stepIndex === index
-          const tone = step.done ? 'border-neutral-300 bg-neutral-100 text-ink' : current ? 'border-brand bg-red-50 text-brand' : 'border-line bg-canvas text-ink-muted'
+          const tone = step.done
+            ? 'border-neutral-300 bg-neutral-100 text-ink'
+            : current
+              ? 'border-brand bg-red-50 text-brand'
+              : 'border-line bg-canvas text-ink-muted'
           return (
-            <li key={step.id} className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${tone}`}>
+            <li
+              key={step.id}
+              aria-current={current ? 'step' : undefined}
+              className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap ${tone}`}
+            >
+              <span className="mr-1 tabular-nums text-[10px] opacity-60">{String(index + 1).padStart(2, '0')}</span>
               {step.label}
             </li>
           )

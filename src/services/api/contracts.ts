@@ -39,6 +39,8 @@ import type {
   MediaDetail,
   SyncDetail,
   SystemSettings,
+  GarageIngestInput,
+  GarageIngestStatus,
   UpdateDeviceInput,
   UpdateGarageInput,
   UpdateUserInput,
@@ -99,6 +101,8 @@ export const restContract = {
   resolveIssue: { method: 'POST', path: '/integrity-issues/:id/resolve' },
   settings: { method: 'GET', path: '/settings' },
   updateSettings: { method: 'PUT', path: '/settings' },
+  edgeIngestStatus: { method: 'GET', path: '/edge/ingest' },
+  startGarageIngest: { method: 'POST', path: '/edge/ingest' },
 } as const
 
 export const realtimeEventTypes = [
@@ -169,4 +173,6 @@ export interface FleetApi {
   resolveIssue(id: string): Promise<IntegrityIssue>
   getSettings(): Promise<SystemSettings>
   updateSettings(input: SystemSettings): Promise<SystemSettings>
+  getGarageIngestStatus(): Promise<GarageIngestStatus>
+  startGarageIngest(input: GarageIngestInput): Promise<GarageIngestStatus>
 }

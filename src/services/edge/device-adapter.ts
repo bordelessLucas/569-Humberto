@@ -1,8 +1,9 @@
 /**
  * Contrato do adaptador de equipamento (Edge Agent).
  *
- * NÃO implementa protocolo real até o cliente enviar datasheet do primeiro MDVR.
- * Qualquer implementação concreta deve ficar em adapters/ e ser registrada no registry.
+ * Datasheet do MC904 (MettaX) já está em arquivosContext/.
+ * Download real só após especificação de SDK/API de listagem/transferência na LAN.
+ * Implementações concretas ficam em adapters/ e no registry.
  */
 
 export type DeviceDiscoveryHint = {
@@ -54,8 +55,8 @@ export interface DeviceAdapter {
 }
 
 export class AdapterNotReadyError extends Error {
-  constructor(adapterId: string) {
-    super(`Adapter "${adapterId}" aguarda datasheet/protocolo do fabricante.`)
+  constructor(adapterId: string, detail?: string) {
+    super(detail ?? `Adapter "${adapterId}" ainda não está pronto para operação na LAN.`)
     this.name = 'AdapterNotReadyError'
   }
 }

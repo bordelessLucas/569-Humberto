@@ -286,3 +286,27 @@ export function useExportReport() {
     },
   })
 }
+
+export function useGarageIngestStatus(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.ingest,
+    queryFn: () => api.getGarageIngestStatus(),
+    enabled,
+    refetchInterval: (query) => {
+      const phase = query.state.data?.phase
+      if (!phase) return false
+      if (phase === 'idle' || phase === 'concluido' || phase === 'nao_autorizado' || phase === 'erro') return false
+      return 700
+    },
+  })
+}
+
+export function useStartGarageIngest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { garageId: string; vehicleId: string }) => api.startGarageIngest(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.all })
+    },
+  })
+}

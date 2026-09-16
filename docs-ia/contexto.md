@@ -88,11 +88,43 @@ Interface de acompanhamento e administração. Não executa o download binário 
 3. **Veículo não pertence permanentemente a uma base.** Frota dinâmica: troca de garagem, venda, oficina, dias fora, retorno em outra base. A base processa qualquer veículo **autorizado** que chegar.
 4. **Empresa/cliente no veículo** (ex.: Light, Enel), via atributo de dados — **não** por sufixo na placa (`PLACA-L` / `PLACA-E` descartados).
 5. **Histórico persistente** de períodos baixados / pendentes; veículo pode ficar dias sem visitar a base e acumular backlog.
-6. **Múltiplas câmeras** por veículo (lâminas e dashboard indicam acompanhamento individual; tipicamente 3).
+6. **Múltiplas câmeras** por veículo. Manual MC904: até **4** canais AHD 1080P (+ IP opcional → 5). Lâminas antigas citavam tipicamente 3.
 7. **Exclusão de vídeo:** manual nesta fase.
 8. **Download na LAN** não deve depender desnecessariamente de internet externa.
-9. **Vários modelos** de câmera/MDVR possíveis no futuro; primeiro modelo real ainda a ser confirmado pelo cliente.
+9. **Primeiro MDVR confirmado pelos manuais:** MettaX **MC904** (equipamento **no veículo**, não o roteador da garagem). Outros modelos possíveis no futuro via novos adapters.
 10. **Nome atual:** Full Lock (pode mudar).
+
+### Equipamento — o que os PDFs em `arquivosContext/` confirmam
+
+Fontes: `user_manual_mc904.pdf`, `MC904 Product Parameters.pdf` (MettaX Digital, v1.0, 2024-04-23).
+
+| Fato | Valor |
+| --- | --- |
+| O que é | MDVR / terminal veicular inteligente (grava no veículo) |
+| O que **não** é | Roteador/AP da garagem |
+| Fabricante | MettaX Digital (Shenzhen) |
+| Modelo | MC904 (variantes regionais EU / LA / NA por banda celular) |
+| OS / CPU | Linux; ARM Cortex CA9 Dual-Core + NPU |
+| Gravação local no veículo | 2× TF/SD, até 512G cada; filesystem proprietário “car-specific” |
+| Câmeras | 4× AHD até 1080P; IP opcional para 5º canal; H.264/H.265 |
+| Wi-Fi | 2.4 GHz 802.11b/g/n — modos **AP** e **Station** (Station = candidato a entrar no Wi-Fi da base) |
+| Celular | 4G (monitoramento remoto do fabricante — fora do núcleo Full Lock) |
+| Protocolos de plataforma citados | JT/T808-2011/2019, JT/T1076-2016, **JT/T1078-2016** (candidato a vídeo) |
+| Upgrade | U-disk, SD, **FTP remoto automático** (só documentado para firmware) |
+| ADAS / DMS / BSD / 360 | Existentes no aparelho — **não** recriar no Full Lock |
+| GUI local | Menu OSD, mouse, IR; senha usuário + admin |
+
+**Sobre o nome “TRX-904”:** era hipótese anterior no projeto. Os manuais entregues falam **MC904**. Tratar MC904 como modelo oficial até o cliente dizer que TRX-904 é outro equipamento ou o mesmo rebranded.
+
+### O que os manuais **ainda não** destravam (bloqueio restante do motor)
+
+1. SDK / API / CMS para **listar e baixar** gravações pela LAN (Wi-Fi Station).  
+2. Como a **placa / ID do veículo** é exposta na rede.  
+3. Credenciais e autenticação para sessão de transferência.  
+4. Layout real dos arquivos no cartão (não assumir montagem USB/FAT no PC da base).  
+5. Confirmação prática: hardware na rede da garagem + IP/MAC observáveis.
+
+**Hipótese técnica (não implementar às cegas):** JT/T1078 sobre a pilha JT/T808 é o caminho mais alinhado aos manuais para vídeo. FTP só está citado para upgrade — não usar como API de vídeo sem prova.
 
 Hipóteses técnicas levantadas em conversa (Firebase Blaze, Cloud Functions, custos de plano, etc.) **não** são requisitos do cliente. Escolha de infraestrutura segue o comportamento confirmado do produto.
 
@@ -117,16 +149,20 @@ Client / Company  (Light, Enel, futuros)
 ```
 
 - **Base (Garage):** local com Wi-Fi, servidor e discos. Não “dona” permanente do veículo.
-- **Vehicle:** entidade móvel; `clientId` (ou equivalente); identificação (placa configurada no equipamento — método de leitura ainda pendente).
+- **Vehicle:** entidade móvel; `clientId` (ou equivalente); identificação (placa configurada no equipamento — método de leitura na rede ainda pendente; ver MC904).
 - **DownloadSession / Sync:** o vínculo operacional veículo ↔ base no tempo.
 - **Histórico:** períodos/arquivos disponíveis, baixados, pendentes, falhos; última sincronização concluída.
 - **User:** acesso ao painel (papéis ainda sugeridos).
+- **Device:** primeiro modelo oficial **MC904** (MettaX); adapter `mettax-mc904` no Edge Agent.
 
-### O que o código atual modela de forma incompatível
+### Débitos de domínio já tratados no código (histórico)
 
-- `Vehicle.garageId` **obrigatório e permanente** em `src/domain/types.ts` — deve deixar de ser vínculo fixo; a base da sessão fica em `Connection` / `SyncRun` / `MediaFile.garageId` / futura `DownloadSession`.
-- Não existe entidade `Client` / `Company` no domínio.
-- Retenção automática (`StoragePolicy.autoDelete`, `runRetention`) contradiz exclusão manual desta fase.
+Itens abaixo estavam incorretos no levantamento anterior e **já foram refatorados** no domínio/mock/Firestore:
+
+- `Vehicle.garageId` permanente → removido; usa-se `lastSeenGarageId` + sessão na base.  
+- Entidade `ClientCompany` + `clientId` no veículo.  
+- Retenção automática desligada nesta fase (`autoDelete: false`).  
+- `VehiclePeriodHistory` + `SyncRun.sessionStatus`.
 
 ### Estados recomendados (máquina simples e extensível)
 
@@ -161,7 +197,7 @@ O dashboard atual usa `concluido | baixando | pendente | erro | conectado | desc
 ## 6. Fluxo operacional de referência (download)
 
 1. Veículo entra na garagem  
-2. Equipamento conecta no Wi-Fi  
+2. Equipamento (MC904) conecta no Wi-Fi da base (modo Station)  
 3. Serviço **local** detecta o equipamento  
 4. Sistema tenta identificar o veículo  
 5. Verifica cadastro / ativo / empresa / autorização da base  
@@ -169,10 +205,14 @@ O dashboard atual usa `concluido | baixando | pendente | erro | conectado | desc
 7. Identifica arquivos/períodos não processados  
 8. Monta fila de download  
 9. Transfere; registra progresso e câmera/origem  
-10. Grava no armazenamento local  
+10. Grava no armazenamento **local do servidor da base**  
 11. Valida integridade da transferência  
 12. Marca concluído ou erro; atualiza última sincronização  
 13. Atualiza dashboard e dados de relatório  
+
+**Fronteira de escopo:** com o vídeo no servidor do cliente, ele pode entregar a uma **empresa terceirizada** para análise. Isso **não** é função do Full Lock (sem upload para nuvem de análise, sem workflow de terceiros no produto).
+
+Implementação atual: pipeline `startGarageIngest` em `src/services/edge/pipeline.ts` + painel “Chegada automática na base” no dashboard. A transferência do MC904 ainda é **simulada** (`origin: simulado`) até existir SDK/JT/T1078; o restante do fluxo (status, histórico, arquivos na base, KPIs) já atualiza o painel.
 
 Necessidades técnicas (mesmo se ainda não implementadas): retomada, retries, saída da rede no meio, arquivo parcial, deduplicação, vários veículos em paralelo, várias câmeras no mesmo veículo.
 
@@ -315,55 +355,39 @@ Evitar: Light/Enel hardcoded; uma base hardcoded; um modelo de câmera hardcoded
 
 ## 12. Impactos do novo levantamento no projeto atual
 
-Auditoria factual do repositório em `c:\borderless\projetos\569-Humberto` (SPA + mock/Firestore). **Nenhuma alteração de código nesta atualização de contexto.**
+Auditoria alinhada aos manuais MC904 + reestruturação de domínio já feita.
 
 ### Já atende
 
-- Múltiplas câmeras por veículo (domínio `Camera`, seed com 3 câmeras, UI).  
-- Múltiplas bases no cadastro (`Garage`, seed com mais de uma).  
+- Múltiplas câmeras por veículo (seed MC904 com 4 canais).  
+- Múltiplas bases; veículo sem base fixa; `ClientCompany`.  
 - Painel com KPIs, fila simulada, progresso, pause/resume/retry no mock.  
 - Separação presentation / domain / services; Firebase fora de `.tsx`.  
-- Metadados de mídia com `garageId` e paths “locais” no mock (sem upload Firebase Storage implementado).  
-- Docs já diziam que download real não cabe no SPA.  
+- Histórico incremental modelado (`VehiclePeriodHistory`).  
+- Edge Agent esqueleto + adapter `mettax-mc904` com capacidades do datasheet.  
+- Docs: download real não cabe no SPA.  
 
 ### Atende parcialmente
 
-- “Download automático”: só **simulação** (demo Caminhão 17); sem agente local.  
-- “Vídeo local”: alinhado em discurso; sem serviço que grave em disco real.  
-- Multi-base no dashboard admin; mas veículo ainda tem `garageId` fixo.  
-- Histórico/pendentes no modelo mock; sem backlog real entre visitas.  
-- Painel observa **e** comanda a fila no mock; motor local inexistente.  
-- MP4 / 15 min / auditoria de lacuna: simulados nas lâminas e no demo; processamento local real ausente.  
+- “Download automático”: só **simulação**; adapter MC904 ainda `ready: false` (falta API/SDK de transferência).  
+- “Vídeo local”: alinhado em discurso; sem serviço que grave em disco real na base.  
+- Dashboard alinhado ao domínio; ainda mock.  
+- MP4 / 15 min / auditoria: simulados.  
 
-### Não atende
+### Não atende (ainda)
 
-- Edge Agent / motor de download na LAN.  
-- `DeviceAdapter` e protocolo real.  
-- Entidade/atributo **empresa/cliente** no veículo.  
-- Veículo independente de base (modelo atual contradiz).  
-- Exclusão manual dedicada (há retenção automática simulada).  
-- Operação de descarga offline na base.  
-- Relatórios PDF/Excel completos; filtros por empresa.  
-- Validação “não autorizado” com motivo no dashboard (fluxo F).  
+- Descoberta/listagem/download reais na LAN via JT/T1078 (ou outra API confirmada).  
+- Identificação automática da placa pelo equipamento.  
+- Relatórios PDF/Excel completos.  
+- Regras Firestore por papel.  
 
-### Deve ser removido / refatorado
+### Dependências externas restantes (motor real)
 
-| Item | Motivo |
-| --- | --- |
-| `Vehicle.garageId` permanente | Frota dinâmica; sessão na base |
-| Retenção automática como regra default | Exclusão manual nesta fase |
-| Ausência de `clientId` / Company | Light/Enel e futuros clientes |
-| Tratar PostgreSQL/Firebase como “o” próximo passo do núcleo | O núcleo é o agente local; persistência é suporte |
-| Qualquer expectativa de Firebase Storage para vídeo | Contradiz requisito confirmado |
-| Hardcode futuro Light/Enel / um modelo TRX | Escalabilidade |
-
-### Dependências externas (bloqueiam o motor real)
-
-- Modelo do primeiro MDVR + datasheet  
-- Protocolo, descoberta na rede, autenticação, listagem de arquivos  
-- Como a identificação (placa) é exposta  
-- Servidor, APs, HDs, topologia, volume/dia, concorrência  
-- Painel centralizado entre bases vs painel por servidor (não fechado)  
+- Spec/SDK JT/T1078 (ou CMS) para listar/baixar na LAN  
+- Identificação do veículo na rede  
+- Credenciais remotas  
+- Hardware + topologia da base (servidor, APs, HDs, concorrência)  
+- Painel centralizado vs por servidor (não fechado)  
 - Sincronização de metadados entre bases (não fechada)  
 
 ---
@@ -373,17 +397,17 @@ Auditoria factual do repositório em `c:\borderless\projetos\569-Humberto` (SPA 
 ```text
 src/
   presentation/     telas (dashboard admin, frota, fila, evidências…)
-  domain/           tipos do painel/mock atual
+  domain/           tipos alinhados (cliente, histórico, sessão)
   services/api/     contrato REST, mock, HTTP, firestore-api
   services/database/firestore-store.ts   metadados na nuvem (fase atual)
+  services/edge/    Edge Agent esqueleto + DeviceAdapter MettaX MC904
   services/firebase.ts                   Auth + Firestore + Analytics
 ```
 
 - `VITE_API_MODE`: `mock` | `firestore` | `real`  
-- Não existe pasta/serviço de Edge Agent.  
-- Não existe `DeviceAdapter` implementado.  
-- Firebase Storage **não** é usado no código de aplicação para vídeo.  
-- Integração fabricante: `integrationStatus: 'aguardando_fabricante'` no seed.  
+- Adapter `mettax-mc904`: metadados do produto OK; operações LAN ainda bloqueadas.  
+- Firebase Storage **não** é usado para vídeo.  
+- Manuais: `arquivosContext/user_manual_mc904.pdf`, `arquivosContext/MC904 Product Parameters.pdf`.
 
 O painel atual é útil para UX, cadastros e demonstração. **Não cumpre sozinho o MVP de descarga local.**
 
@@ -391,18 +415,17 @@ O painel atual é útil para UX, cadastros e demonstração. **Não cumpre sozin
 
 ## 14. Pendências técnicas / aguardando cliente
 
-Marcar tudo abaixo como **Pendente de validação** até resposta confirmada:
-
 | Item | Status |
 | --- | --- |
-| Modelo exato do primeiro MDVR/câmera | Pendente de validação |
-| Datasheet(s); até dois modelos alternativos | Pendente de validação |
-| Protocolo de comunicação e descoberta na rede | Pendente de validação |
-| Autenticação no equipamento | Pendente de validação |
-| Formato da identificação do veículo (placa no device etc.) | Pendente de validação |
-| Estrutura de pastas/arquivos no equipamento | Pendente de validação |
-| Quantidade de streams/câmeras por modelo | Pendente de validação (lâminas sugerem 3) |
-| Capacidade e quantidade de HDs; servidor; CPU/RAM; NICs; APs | Pendente de validação |
+| Modelo do primeiro MDVR | **Confirmado: MettaX MC904** (manuais em `arquivosContext/`) |
+| Datasheet de produto / instalação | **Recebido** |
+| Wi-Fi STA/AP, 4 câmeras, codecs, JT/T808/1076/1078 | **Confirmado no datasheet** |
+| Spec/SDK/API de listagem e download na LAN | **Pendente** (bloqueia `ready: true`) |
+| Autenticação remota no equipamento | Pendente de validação |
+| Formato da identificação do veículo (placa no device) | Pendente de validação |
+| Estrutura real dos arquivos no TF/SD | Pendente (filesystem proprietário citado) |
+| Quantidade de streams em campo | Manual: até 4 (+1 IP); validar frota real |
+| Capacidade HDs / servidor / APs da base | Pendente de validação |
 | Topologia de rede da base | Pendente de validação |
 | Veículos simultâneos e volume médio de vídeo/dia | Pendente de validação |
 | Política definitiva de autorização por base | Pendente de validação (configurável) |
@@ -410,13 +433,13 @@ Marcar tudo abaixo como **Pendente de validação** até resposta confirmada:
 | Sincronização de metadados entre bases | Pendente de validação |
 | Papéis finais de usuário | Pendente de validação |
 | Política futura de retenção de vídeo | Pendente de validação (hoje: exclusão manual) |
-| Pacote completo de logos (tamanhos / com e sem fundo) | Pendente de recebimento se incompleto |
+| Relação TRX-904 × MC904 | Pendente (assumir MC904 até o cliente esclarecer) |
 | Nome definitivo do produto | Full Lock por enquanto; pode mudar |
 | Obrigação de relatório diário automático | Proposto; não fechado |
 | Canal de alerta (só painel / e-mail / outro) | Pendente de validação |
 | Stream vs download na consulta de vídeo no painel | Pendente de validação |
 
-**Não inventar números** de throughput, tamanho de frota ou capacidade.
+**Não inventar números** de throughput, tamanho de frota ou capacidade. **Não inventar protocolo** de download além do que o fabricante documentar.
 
 ---
 
@@ -429,7 +452,7 @@ Não é cronograma contratado. É a ordem que desbloqueia o MVP real.
 | Etapa | Status |
 | --- | --- |
 | 1 Reestruturação do domínio | **Feito no domínio/mock/Firestore/UI** — `ClientCompany`, veículo sem `garageId` fixo, `lastSeenGarageId`, `SyncRun.sessionStatus`, `VehiclePeriodHistory`, retenção automática desligada |
-| 2 Edge Agent + 1º adapter | **Esqueleto** em `src/services/edge/` — contrato `DeviceAdapter`, registry, adapter `pending-first-mdvr` que falha até datasheet. Sem protocolo inventado |
+| 2 Edge Agent + 1º adapter | **Parcial** — `mettax-mc904` com capacidades do datasheet; `ready: false` até API/SDK de transferência (candidato JT/T1078) |
 | 3 Histórico incremental | **Modelo + seed + UI** no detalhe do veículo; motor real ainda não alimenta |
 | 4 Dashboard real | **UI alinhada ao domínio** (cliente, base vista, backlog no relatório). Ainda mock — eventos do agente virão depois |
 | 5–8 | Pendentes |
@@ -440,7 +463,8 @@ Revisar: Base, Vehicle (sem base fixa), Client/Company, Device, Camera, Download
 
 ### Etapa 2 — Motor local de integração (Edge Agent)
 
-Serviço na base: descoberta, conexão, identificação, adapter do **primeiro** modelo real, listagem, fila, download, retry, logs, gravação em disco. Bloqueado até datasheet/hardware. Código: contrato + placeholder apenas.
+Serviço na base: descoberta, conexão, identificação, adapter **MettaX MC904**, listagem, fila, download, retry, logs, gravação em disco.  
+Produto/manual recebidos. **Bloqueado para transferência real** até spec JT/T1078 (ou API CMS) + hardware na LAN.
 
 ### Etapa 3 — Histórico e download incremental
 
@@ -490,7 +514,9 @@ Novos adapters conforme novos modelos/datasheets; motor independente do fabrican
 | `docs-ia/checklist_sprints.md` | Checklist operacional; alinhar à ordem da seção 15 |
 | `docs-ia/design_system.md` | UI |
 | `docs-ia/plano_dashboard_admin.md` | Plano do dashboard admin (UX) |
-| `arquivosContext/` | Lâminas e material do cliente |
+| `docs-ia/analise_arquitetura_garage_agent.md` | Captura + crítica + consenso Agent outbound / mídia local |
+| `docs-ia/spec_agent_api_v1_stub.md` | Spec `agent-api@v1` + Agent stub Docker (sem JT/T) |
+| `arquivosContext/` | Lâminas, logos e manuais do equipamento (`user_manual_mc904.pdf`, `MC904 Product Parameters.pdf`) |
 
 Em caso de conflito entre documentos, **prevalece este `contexto.md`**, atualizado pelo levantamento mais recente.
 
