@@ -17,6 +17,7 @@ import {
   useResolveIssue,
   useSession,
   useSetFileProtection,
+  useGarages,
   useVehicles,
 } from '../hooks/useFleet.ts'
 
@@ -24,6 +25,9 @@ export function MediaPage() {
   const [filters, setFilters] = useState<FileQuery>({})
   const files = useFiles(filters)
   const session = useSession()
+  const vehicles = useVehicles()
+  const cameras = useCameras()
+  const garages = useGarages()
   const protect = useSetFileProtection()
   const canProtect = session.data?.user.role ? canResolveIncident(session.data.user.role) || session.data.user.role === 'admin' : false
 
@@ -33,11 +37,29 @@ export function MediaPage() {
       <div className="mt-6 flex flex-col gap-4">
         <form className="flex flex-wrap items-end gap-3">
           <label>Placa<input value={filters.plate ?? ''} onChange={(event) => setFilters({ ...filters, plate: event.target.value })} /></label>
-          <label>Veículo<input value={filters.vehicleId ?? ''} onChange={(event) => setFilters({ ...filters, vehicleId: event.target.value })} /></label>
+          <label>
+            Veículo
+            <select value={filters.vehicleId ?? ''} onChange={(event) => setFilters({ ...filters, vehicleId: event.target.value || undefined })}>
+              <option value="">Todos</option>
+              {(vehicles.data ?? []).map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.name}</option>)}
+            </select>
+          </label>
           <label>Data<input type="date" value={filters.date ?? ''} onChange={(event) => setFilters({ ...filters, date: event.target.value })} /></label>
           <label>Horário<input type="time" value={filters.time ?? ''} onChange={(event) => setFilters({ ...filters, time: event.target.value })} /></label>
-          <label>Câmera<input value={filters.cameraId ?? ''} onChange={(event) => setFilters({ ...filters, cameraId: event.target.value })} /></label>
-          <label>Garagem<input value={filters.garageId ?? ''} onChange={(event) => setFilters({ ...filters, garageId: event.target.value })} /></label>
+          <label>
+            Câmera
+            <select value={filters.cameraId ?? ''} onChange={(event) => setFilters({ ...filters, cameraId: event.target.value || undefined })}>
+              <option value="">Todas</option>
+              {(cameras.data ?? []).map((camera) => <option key={camera.id} value={camera.id}>{camera.name}</option>)}
+            </select>
+          </label>
+          <label>
+            Garagem
+            <select value={filters.garageId ?? ''} onChange={(event) => setFilters({ ...filters, garageId: event.target.value || undefined })}>
+              <option value="">Todas</option>
+              {(garages.data ?? []).map((garage) => <option key={garage.id} value={garage.id}>{garage.name}</option>)}
+            </select>
+          </label>
           <label>
             Status
             <select value={filters.status ?? ''} onChange={(event) => setFilters({ ...filters, status: event.target.value ? (event.target.value as FileStatus) : undefined })}>

@@ -1,0 +1,29 @@
+services:
+  garage-agent-stub:
+    build: .
+    environment:
+      AGENT_API_BASE: http://agent-api-mock:8787
+      ACTIVATION_CODE: BRD-DEMO-0001
+      AGENT_ID: stub-docker-01
+      STORAGE_PATH: /data/garage-media
+      HEARTBEAT_SECONDS: "10"
+      SIM_ARRIVAL_SECONDS: "60"
+      ORIGIN: simulado
+    volumes:
+      - garage-media:/data/garage-media
+    depends_on:
+      - agent-api-mock
+    restart: unless-stopped
+
+  agent-api-mock:
+    build: .
+    command: ["npm", "run", "start:api-mock"]
+    environment:
+      PORT: "8787"
+      ACTIVATION_CODE: BRD-DEMO-0001
+    ports:
+      - "8787:8787"
+    restart: unless-stopped
+
+volumes:
+  garage-media:

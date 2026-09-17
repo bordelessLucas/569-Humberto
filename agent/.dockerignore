@@ -1,0 +1,4 @@
+node_modules
+npm-debug.log
+.agent-state.json
+garage-media

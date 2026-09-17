@@ -28,9 +28,9 @@ Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent �
 
 ### Edge Agent — stub Docker (agora)
 
-- [ ] Implementar pasta `agent/` + Dockerfile + cliente do contrato (`spec_agent_api_v1_stub.md`)
-- [ ] Mock da API (`activate` / `heartbeat` / `events` / `commands`)
-- [ ] Stub: ciclo simulado + volume `/data/garage-media` + pause/resume/force
+- [x] Implementar pasta `agent/` + Dockerfile + cliente do contrato (`spec_agent_api_v1_stub.md`)
+- [x] Mock da API (`activate` / `heartbeat` / `events` / `commands`)
+- [x] Stub: ciclo simulado + volume `/data/garage-media` + pause/resume/force
 
 ### Edge Agent — transferência real (depois do stub)
 

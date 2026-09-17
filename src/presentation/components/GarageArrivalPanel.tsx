@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { errorMessage } from '../format.ts'
 import { useGarageIngestStatus, useGarages, useStartGarageIngest, useVehicles } from '../hooks/useFleet.ts'
 import { ProgressBar, StatusChip } from './ui.tsx'
@@ -10,14 +10,8 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
   const start = useStartGarageIngest()
   const [garageId, setGarageId] = useState('')
   const [vehicleId, setVehicleId] = useState('')
-
-  useEffect(() => {
-    if (!garageId && garages.data?.[0]) setGarageId(garages.data[0].id)
-  }, [garageId, garages.data])
-
-  useEffect(() => {
-    if (!vehicleId && vehicles.data?.[0]) setVehicleId(vehicles.data[0].id)
-  }, [vehicleId, vehicles.data])
+  const selectedGarageId = garageId || garages.data?.[0]?.id || ''
+  const selectedVehicleId = vehicleId || vehicles.data?.[0]?.id || ''
 
   const status = ingest.data
   const running =
@@ -40,8 +34,8 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
         className="flex flex-wrap items-end gap-3"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!garageId || !vehicleId) return
-          start.mutate({ garageId, vehicleId })
+          if (!selectedGarageId || !selectedVehicleId) return
+          start.mutate({ garageId: selectedGarageId, vehicleId: selectedVehicleId })
         }}
       >
         <label htmlFor="ingest-garage">
@@ -50,7 +44,7 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
             id="ingest-garage"
             name="garageId"
             autoComplete="off"
-            value={garageId}
+            value={selectedGarageId}
             onChange={(event) => setGarageId(event.target.value)}
             required
             disabled={running || start.isPending}
@@ -68,7 +62,7 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
             id="ingest-vehicle"
             name="vehicleId"
             autoComplete="off"
-            value={vehicleId}
+            value={selectedVehicleId}
             onChange={(event) => setVehicleId(event.target.value)}
             required
             disabled={running || start.isPending}

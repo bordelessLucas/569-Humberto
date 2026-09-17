@@ -1,0 +1,60 @@
+export type Origin = 'simulado' | 'device'
+
+export type CommandType =
+  | 'PAUSE_SESSION'
+  | 'RESUME_SESSION'
+  | 'RETRY_SESSION'
+  | 'FORCE_SYNC'
+  | 'REFRESH_POLICY'
+  | 'SET_PRIORITY'
+
+export type AckStatus = 'accepted' | 'rejected' | 'done' | 'failed'
+
+export interface AgentConfig {
+  heartbeatSeconds: number
+  commandsWaitSeconds: number
+  storagePath: string
+}
+
+export interface ActivationResponse {
+  garageId: string
+  tenantId: string
+  token: string
+  apiBaseUrl: string
+  config: AgentConfig
+}
+
+export interface AgentEvent {
+  eventId: string
+  type: string
+  at: string
+  origin: Origin
+  payload: Record<string, unknown>
+}
+
+export interface AgentCommand {
+  commandId: string
+  type: CommandType
+  issuedAt: string
+  expiresAt: string
+  payload: Record<string, unknown>
+}
+
+export interface AgentPolicy {
+  version: number
+  fetchedAt: string
+  ttlSeconds: number
+  vehicles: Array<{ vehicleId: string; allowed: boolean; priority: number }>
+  devices: Array<{ deviceId: string; vehicleId: string; allowed: boolean }>
+}
+
+export interface LocalState {
+  token: string | null
+  garageId: string | null
+  tenantId: string | null
+  config: AgentConfig | null
+  policy: AgentPolicy | null
+  bufferedEvents: AgentEvent[]
+  lastSessionId: string | null
+  sequence: number
+}

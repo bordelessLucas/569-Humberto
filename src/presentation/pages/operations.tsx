@@ -4,6 +4,7 @@ import { DataTable, PageHeader, ProgressBar, QueryState, StatusChip } from '../c
 import { errorMessage, formatBytes, formatDateTime } from '../format.ts'
 import {
   useConnections,
+  useCameras,
   usePauseTransfer,
   useProcessingJobs,
   useRecordings,
@@ -83,6 +84,7 @@ export function SyncListPage() {
 export function SyncDetailPage() {
   const params = useParams()
   const detail = useSync(params.id ?? '')
+  const cameras = useCameras()
   const data = detail.data
   return (
     <div>
@@ -98,7 +100,7 @@ export function SyncDetailPage() {
                 rows={data.recordings}
                 empty="Nenhuma gravação nesta sessão."
                 columns={[
-                  { id: 'camera', header: 'Câmera', cell: (row) => row.cameraId },
+                  { id: 'camera', header: 'Câmera', cell: (row) => cameras.data?.find((item) => item.id === row.cameraId)?.name ?? row.cameraId },
                   { id: 'start', header: 'Início', cell: (row) => formatDateTime(row.startsAt) },
                   { id: 'status', header: 'Status', cell: (row) => <StatusChip value={row.status} /> },
                 ]}
@@ -113,6 +115,9 @@ export function SyncDetailPage() {
 
 export function DownloadsPage() {
   const transfers = useTransfers()
+  const vehicles = useVehicles()
+  const recordings = useRecordings()
+  const cameras = useCameras()
   const session = useSession()
   const pause = usePauseTransfer()
   const resume = useResumeTransfer()
@@ -131,7 +136,22 @@ export function DownloadsPage() {
             empty="Nenhum download na fila."
             columns={[
               { id: 'id', header: 'Item', cell: (row) => row.id },
-              { id: 'vehicle', header: 'Veículo', cell: (row) => <Link to={`/vehicles/${row.vehicleId}`}>{row.vehicleId}</Link> },
+              {
+                id: 'vehicle',
+                header: 'Veículo',
+                cell: (row) => {
+                  const vehicle = vehicles.data?.find((item) => item.id === row.vehicleId)
+                  return <Link to={`/vehicles/${row.vehicleId}`}>{vehicle ? `${vehicle.name} · frota ${vehicle.fleetNumber}` : row.vehicleId}</Link>
+                },
+              },
+              {
+                id: 'camera',
+                header: 'Câmera',
+                cell: (row) => {
+                  const recording = recordings.data?.find((item) => item.id === row.recordingId)
+                  return cameras.data?.find((item) => item.id === recording?.cameraId)?.name ?? recording?.cameraId ?? '—'
+                },
+              },
               { id: 'priority', header: 'Prioridade', cell: (row) => canOperate ? (
                 <select value={row.priority} onChange={(event) => priority.mutate({ id: row.id, priority: Number(event.target.value) })}>
                   <option value={1}>Alta</option>
