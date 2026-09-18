@@ -1,5 +1,6 @@
 import { stat } from 'node:fs/promises'
 import { AgentApiClient } from './client/agent-api.ts'
+import { buildDefaultDeviceRegistry } from './devices/index.ts'
 import { env } from './env.ts'
 import { log } from './log.ts'
 import { ArrivalSimulator, event } from './sim/arrival.ts'
@@ -9,7 +10,10 @@ import type { AgentEvent } from './types.ts'
 const startedAt = Date.now()
 const store = new LocalStore(env.storagePath)
 const client = new AgentApiClient({ apiBase: env.apiBase, agentId: env.agentId, version: env.version })
+const deviceRegistry = buildDefaultDeviceRegistry()
 await store.load()
+
+log('device adapters loaded', { adapters: deviceRegistry.list().map((adapter) => adapter.capability.adapterId) })
 
 async function activateOrRegister(): Promise<void> {
   const state = store.snapshot()

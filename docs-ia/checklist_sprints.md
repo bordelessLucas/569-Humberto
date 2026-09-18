@@ -23,6 +23,8 @@ Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent �
 - [x] Fronteira explícita: análise por terceiros **fora do escopo**
 - [x] Arquitetura oficial Agent outbound (`analise_arquitetura_garage_agent.md`)
 - [x] Spec `agent-api@v1` + stub Docker documentada (`spec_agent_api_v1_stub.md`) — sem JT/T
+- [x] Auditoria do novo equipamento informado: Hikvision AE-MD5043 citado pelo cliente, mas PDF recebido é manual MC401 MettaX (`auditoria_equipamento_mc401_hikvision_ae-md5043.md`)
+- [x] Pesquisa técnica consolidada: Hikvision ISAPI/HCNetSDK e MettaX JT/T1078 (`pesquisa_tecnica_full_lock_retorno.md`)
 
 ## Bloqueado / próximo
 
@@ -36,6 +38,13 @@ Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent �
 
 - [ ] Spec/SDK/API **JT/T1078** (ou CMS MettaX) — spike
 - [ ] Hardware MC904 na LAN para validar descoberta/transferência
+- [ ] Manual técnico/API/SDK correto do **Hikvision AE-MD5043-SD/I/GLF/WI58**
+- [ ] Confirmar se o **MC401** do `Manual 401 PTBR.pdf` faz parte da operação ou foi enviado por engano
+- [ ] Adapter `hikvision-ae-md5043` somente como planejado/`transfer=unknown` até prova de listagem e download
+- [ ] Adapter Hikvision ISAPI: capability probe + busca histórica + download para `.part`
+- [ ] Spike JT/T1078 MettaX: provar `0x9205/0x1205/0x9206/0x1206/0x9207` em hardware real
+- [ ] FTP receiver local apenas para fluxo JT/T1078 `0x9206`
+- [ ] Registro serial/deviceId/terminalId -> vehicleId antes de depender de placa/VIN dentro do equipamento
 - [ ] Serviço deployável de produção na base
 - [ ] Esclarecer se “TRX-904” é o mesmo que MC904
 
