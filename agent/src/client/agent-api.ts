@@ -1,4 +1,4 @@
-import type { AckStatus, ActivationResponse, AgentCommand, AgentEvent, AgentPolicy } from '../types.ts'
+import type { AckStatus, ActivationResponse, AdapterCapability, AgentCommand, AgentEvent, AgentPolicy } from '../types.ts'
 
 interface ClientOptions {
   apiBase: string
@@ -50,7 +50,7 @@ export class AgentApiClient {
         storage,
         capabilities: {
           transfer: 'unknown',
-          adapters: ['mettax-mc904'],
+          adapters: [...adapterCapabilities],
           ffmpeg: false,
           thirdPartyExport: false,
         },
@@ -101,3 +101,22 @@ export class AgentApiClient {
     return response.json() as Promise<T>
   }
 }
+
+const adapterCapabilities: AdapterCapability[] = [
+  {
+    adapterId: 'hikvision-ae-md5043-isapi',
+    manufacturer: 'Hikvision',
+    models: ['AE-MD5043-SD/I/GLF/WI58'],
+    mode: 'pull-lan',
+    protocol: 'ISAPI',
+    transfer: 'candidate',
+  },
+  {
+    adapterId: 'mettax-jtt1078',
+    manufacturer: 'MettaX Digital',
+    models: ['MC904', 'MC401'],
+    mode: 'terminal-initiated',
+    protocol: 'JT/T808+JT/T1078+FTP',
+    transfer: 'spike-required',
+  },
+]

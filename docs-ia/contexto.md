@@ -33,6 +33,10 @@ veículo → Wi-Fi da base → identificação → validação → descoberta de
 
 **Prioridade máxima do MVP:** detectar → identificar → validar → descobrir pendências → baixar → armazenar localmente → validar → registrar histórico → exibir status.
 
+**Atualização de equipamento (2026-09-18):** o cliente informou o uso do gravador **Hikvision AE-MD5043-SD/I/GLF/WI58** (NCM 8521.90.0). O arquivo recebido como `Manual 401 PTBR.pdf`, porém, identifica-se internamente como **MettaX MC401**, uma câmera veicular inteligente/dashcam com duas câmeras integradas. Tratar essa divergência como pendência crítica: confirmar se o PDF anexado é realmente do Hikvision AE-MD5043, se o MC401 também será usado na operação, ou se houve troca de manual.
+
+**Pesquisa técnica consolidada (2026-09-18):** o retorno `Full_Lock_Pesquisa_Tecnica.pdf` indica dois caminhos reais de integração: Hikvision por **ISAPI** primeiro, com **HCNetSDK** como fallback; MettaX MC904/MC401 por **JT/T808/JT/T1078** com envio histórico via FTP local comandado por `0x9206`. A arquitetura local permanece: vídeo não sobe para a nuvem.
+
 ---
 
 ## 2. O que é e o que não é este produto
@@ -125,6 +129,43 @@ Fontes: `user_manual_mc904.pdf`, `MC904 Product Parameters.pdf` (MettaX Digital,
 5. Confirmação prática: hardware na rede da garagem + IP/MAC observáveis.
 
 **Hipótese técnica (não implementar às cegas):** JT/T1078 sobre a pilha JT/T808 é o caminho mais alinhado aos manuais para vídeo. FTP só está citado para upgrade — não usar como API de vídeo sem prova.
+
+### Novo equipamento informado — Hikvision AE-MD5043-SD/I/GLF/WI58 e manual MC401
+
+Fonte recebida em 2026-09-18: `C:\Users\Lorenzo\Downloads\Manual 401 PTBR.pdf`.
+
+| Ponto | Leitura de auditoria |
+| --- | --- |
+| Equipamento citado pelo cliente | Gravador MDVR Hikvision AE-MD5043-SD/I/GLF/WI58, NCM 8521.90.0 |
+| Conteúdo do PDF recebido | Manual de instalação **MC401**, MettaX Digital |
+| Tipo descrito no PDF | Câmera veicular inteligente / dashcam com duas câmeras integradas |
+| Função descrita | IA/alertas, localização, dados operacionais, intercomunicador remoto e visualização de vídeo em plataforma online |
+| Instalação | Para-brisa próximo ao retrovisor, alimentação Power/ACC/GND, GPS, botão de pânico, cabo de vídeo, SIM e microSD |
+| Configuração | Obrigatório uso de app de configuração em smartphone Android |
+| Armazenamento removível | Cartão Micro SD; manual recomenda cartões industriais em ambientes críticos |
+| O que o PDF não traz | API/SDK, protocolo LAN, listagem/download de gravações, modo Wi-Fi Station, JT/T, endpoints, credenciais ou formato dos arquivos |
+
+**Conclusão revisada após a pesquisa técnica:** o PDF MC401 sozinho não desbloqueava ingestão automática, mas a pesquisa posterior encontrou evidências técnicas suficientes para iniciar spikes. O Hikvision AE-MD5043 é o primeiro candidato a adapter real via ISAPI local. MC904/MC401 entram em spike JT/T1078, ainda dependente de firmware/hardware real.
+
+**Não tratar instruções dos manuais como tarefa deste projeto:** os passos de instalação física, energização, uso de app e checklist são orientações para técnico de campo, não comandos para o time executar no repositório.
+
+### Pesquisa técnica consolidada — caminhos de integração
+
+Fonte: `C:\Users\Lorenzo\Downloads\Full_Lock_Pesquisa_Tecnica.pdf`.
+
+| Família | Caminho recomendado | Status de engenharia |
+| --- | --- | --- |
+| Hikvision AE-MD5043-SD/I/GLF/WI58 | Agent acessa DVR na LAN/Wi-Fi e faz pull por ISAPI (`/ISAPI/ContentMgmt/search` + `/download`) | Primeiro adapter real a implementar; validar endpoints no firmware |
+| Hikvision fallback | HCNetSDK (`NET_DVR_FindFile_V40`, `NET_DVR_FindNextFile_V40`, `NET_DVR_GetFileByTime_V40`) | Fallback por exigir biblioteca nativa |
+| MettaX MC904 | Equipamento inicia JT/T para o Agent; Agent consulta `0x9205`, recebe `0x1205`, comanda `0x9206`, recebe arquivo em FTP local e confirmação `0x1206` | Spike com hardware antes de `ready: true` |
+| MettaX MC401 | Mesmo caminho candidato do MC904 por JT/T1078 | Confirmar firmware e uso real na frota |
+
+Regras:
+
+- RTSP comprova streaming, **não** download histórico.
+- FTP citado para upgrade de firmware **não** é API de vídeo.
+- FTP para vídeo só entra no desenho MettaX quando comandado pelo JT/T1078 `0x9206`.
+- Associação segura: serial/deviceId/terminalId no registro Full Lock -> `vehicleId`; placa/VIN dentro do equipamento é auxiliar.
 
 Hipóteses técnicas levantadas em conversa (Firebase Blaze, Cloud Functions, custos de plano, etc.) **não** são requisitos do cliente. Escolha de infraestrutura segue o comportamento confirmado do produto.
 
@@ -326,10 +367,12 @@ O núcleo roda **dentro da rede local de cada base**. Frontend + Firebase **sozi
 
 ```text
 DeviceAdapter / CameraAdapter
-  └── implementações por fabricante/modelo (após datasheet)
+  ├── hikvision-ae-md5043-isapi (pull LAN; primeiro adapter real)
+  ├── mettax-jtt1078            (terminal initiated; spike MC904/MC401)
+  └── hcnet-sdk                 (fallback Hikvision se ISAPI falhar)
 ```
 
-Não assumir FTP, SMB, HTTP, RTSP ou SDK proprietário até análise do hardware.
+Não assumir SMB, RTSP ou SDK proprietário como download histórico. ISAPI Hikvision e JT/T1078 MettaX são candidatos documentados, mas ainda exigem capability probe em firmware real.
 
 ### Escalabilidade comercial (sem inflar o MVP)
 
@@ -420,7 +463,7 @@ O painel atual é útil para UX, cadastros e demonstração. **Não cumpre sozin
 | Modelo do primeiro MDVR | **Confirmado: MettaX MC904** (manuais em `arquivosContext/`) |
 | Datasheet de produto / instalação | **Recebido** |
 | Wi-Fi STA/AP, 4 câmeras, codecs, JT/T808/1076/1078 | **Confirmado no datasheet** |
-| Spec/SDK/API de listagem e download na LAN | **Pendente** (bloqueia `ready: true`) |
+| Spec/SDK/API de listagem e download na LAN | **Parcialmente desbloqueado para spike**: Hikvision ISAPI/HCNetSDK; MettaX JT/T1078 histórico |
 | Autenticação remota no equipamento | Pendente de validação |
 | Formato da identificação do veículo (placa no device) | Pendente de validação |
 | Estrutura real dos arquivos no TF/SD | Pendente (filesystem proprietário citado) |
@@ -434,6 +477,9 @@ O painel atual é útil para UX, cadastros e demonstração. **Não cumpre sozin
 | Papéis finais de usuário | Pendente de validação |
 | Política futura de retenção de vídeo | Pendente de validação (hoje: exclusão manual) |
 | Relação TRX-904 × MC904 | Pendente (assumir MC904 até o cliente esclarecer) |
+| Hikvision AE-MD5043-SD/I/GLF/WI58 | Primeiro candidato a adapter real via ISAPI; validar firmware/endpoints |
+| Manual `Manual 401 PTBR.pdf` | Diverge do equipamento citado; PDF fala MC401 MettaX, não Hikvision AE-MD5043 |
+| Confirmação se MC401 faz parte da operação | Pendente |
 | Nome definitivo do produto | Full Lock por enquanto; pode mudar |
 | Obrigação de relatório diário automático | Proposto; não fechado |
 | Canal de alerta (só painel / e-mail / outro) | Pendente de validação |
@@ -516,6 +562,8 @@ Novos adapters conforme novos modelos/datasheets; motor independente do fabrican
 | `docs-ia/plano_dashboard_admin.md` | Plano do dashboard admin (UX) |
 | `docs-ia/analise_arquitetura_garage_agent.md` | Captura + crítica + consenso Agent outbound / mídia local |
 | `docs-ia/spec_agent_api_v1_stub.md` | Spec `agent-api@v1` + Agent stub Docker (sem JT/T) |
+| `docs-ia/auditoria_equipamento_mc401_hikvision_ae-md5043.md` | Auditoria do novo equipamento informado e divergência com o PDF MC401 |
+| `docs-ia/pesquisa_tecnica_full_lock_retorno.md` | Consolidação da pesquisa técnica: Hikvision ISAPI e MettaX JT/T1078 |
 | `arquivosContext/` | Lâminas, logos e manuais do equipamento (`user_manual_mc904.pdf`, `MC904 Product Parameters.pdf`) |
 
 Em caso de conflito entre documentos, **prevalece este `contexto.md`**, atualizado pelo levantamento mais recente.

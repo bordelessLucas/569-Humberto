@@ -1,24 +1,39 @@
 # Garage Agent stub
 
-Stub Docker do `agent-api@v1` para validar o fluxo Full Lock sem hardware MC904.
+Stub Docker do `agent-api@v1` para validar o fluxo Full Lock sem hardware real.
 
 Ele faz:
 
 - `activate` ou reutiliza token persistido em `/data/garage-media/.agent-state.json`
-- heartbeat com `capabilities.transfer=unknown`
+- heartbeat com capacidades estruturadas de adapters
 - long-poll de comandos
 - ciclo simulado de chegada por timer ou `FORCE_SYNC`
 - eventos `device.seen`, `auth.decision`, `session.*`, `file.indexed`, `device.left`
 - arquivos placeholder no volume local
 - buffer local de eventos quando a API fica indisponivel
+- registry interno de adapters candidatos
 
 Ele nao faz:
 
-- JT/T808 ou JT/T1078
+- JT/T808 ou JT/T1078 de producao
 - descoberta real de IP/MAC
-- download real do MC904
+- download real do Hikvision/MettaX
 - FFmpeg
 - upload de video
+
+## Adapters candidatos
+
+| Adapter | Modo | Status |
+| --- | --- | --- |
+| `hikvision-ae-md5043-isapi` | Agent faz pull pela LAN/Wi-Fi via ISAPI | Primeiro caminho real planejado; depende de capability probe no firmware |
+| `mettax-jtt1078` | Equipamento inicia sessao JT/T; Agent comanda historico e recebe por FTP local | Spike obrigatorio com hardware MC904/MC401 |
+
+Regras:
+
+- RTSP nao conta como download historico.
+- FTP de upgrade de firmware nao conta como API de video.
+- FTP para video so entra no fluxo MettaX via JT/T1078 `0x9206`.
+- Videos permanecem no storage local da garagem.
 
 ## Rodar
 

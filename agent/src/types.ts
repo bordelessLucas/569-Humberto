@@ -10,6 +10,25 @@ export type CommandType =
 
 export type AckStatus = 'accepted' | 'rejected' | 'done' | 'failed'
 
+export type AdapterMode = 'pull-lan' | 'terminal-initiated'
+export type TransferCapability = 'unknown' | 'candidate' | 'spike-required' | 'proven' | 'unsupported'
+
+export interface AdapterCapability {
+  adapterId: string
+  manufacturer: string
+  models: string[]
+  mode: AdapterMode
+  protocol: string
+  transfer: TransferCapability
+}
+
+export interface AgentCapabilities {
+  transfer: TransferCapability
+  adapters: AdapterCapability[]
+  ffmpeg: boolean
+  thirdPartyExport: boolean
+}
+
 export interface AgentConfig {
   heartbeatSeconds: number
   commandsWaitSeconds: number

@@ -34,6 +34,7 @@ Política de produto já fechada:
 | Idempotência | `sessionId`, `eventId`, `commandId` estáveis; retries seguros |
 | Origem | Campo `origin`: `simulado` (stub) \| `device` (MC904 real, futuro) |
 | Sem mídia | Nenhum endpoint aceita upload de vídeo/imagem |
+| Modelo flexível | Eventos e heartbeat devem aceitar múltiplos adapters/modelos sem acoplar o contrato a MC904, Hikvision ou MC401 |
 
 ---
 
@@ -97,7 +98,24 @@ Header: `Authorization: Bearer <token>`
   },
   "capabilities": {
     "transfer": "unknown",
-    "adapters": ["mettax-mc904"],
+    "adapters": [
+      {
+        "adapterId": "hikvision-ae-md5043-isapi",
+        "manufacturer": "Hikvision",
+        "models": ["AE-MD5043-SD/I/GLF/WI58"],
+        "mode": "pull-lan",
+        "protocol": "ISAPI",
+        "transfer": "candidate"
+      },
+      {
+        "adapterId": "mettax-jtt1078",
+        "manufacturer": "MettaX Digital",
+        "models": ["MC904", "MC401"],
+        "mode": "terminal-initiated",
+        "protocol": "JT/T808+JT/T1078+FTP",
+        "transfer": "spike-required"
+      }
+    ],
     "ffmpeg": false,
     "thirdPartyExport": false
   },
@@ -107,6 +125,13 @@ Header: `Authorization: Bearer <token>`
 ```
 
 `capabilities.transfer`: `unknown` \| `proven` \| `unsupported` (stub = `unknown` até spike MC904).
+Adapters conhecidos nesta fase:
+
+| Adapter | Status |
+| --- | --- |
+| `hikvision-ae-md5043-isapi` | Primeiro candidato a adapter real; validar endpoints ISAPI no firmware |
+| `mettax-jtt1078` | Spike MC904/MC401; provar comandos históricos e FTP local em hardware |
+| `hcnet-sdk` | Fallback Hikvision se ISAPI estiver limitado; depende de SDK nativo |
 
 Response `200`: `{ "ok": true, "serverTime": "<iso>" }`  
 Opcional: embutir `commands[]` curtas no heartbeat (além do long-poll).
@@ -131,6 +156,9 @@ Header: `Authorization: Bearer <token>`
       "payload": {
         "deviceId": "dev-stub-17",
         "serial": "MC904-STUB-17",
+        "manufacturer": "MettaX",
+        "model": "MC904",
+        "adapterId": "mettax-mc904",
         "ip": "10.20.17.4",
         "mac": "AA:10:20:00:17:04",
         "vehicleId": "veh-17"
@@ -349,6 +377,8 @@ Não é obrigatório plugar o SPA no stub no mesmo PR — mas o **schema de even
 ## 7. Explicitamente fora (não implementar neste passo)
 
 - JT/T808 / JT/T1078 / CMS MettaX  
+- Hikvision AE-MD5043 real / ISAPI / SDK Hikvision  
+- MC401 real / app de configuração / leitura de Micro SD  
 - Discovery real de IP/MAC na LAN  
 - FFmpeg / corte 15 min  
 - FTP (upgrade ou “vídeo”)  

@@ -7,6 +7,10 @@ Objetivo: anotar **tudo o que importa**, avaliar **viabilidade** com pouco acess
 **Atualizado:** 2026-09-16 — §11–16 substituídas por **consenso** do conselho Edge + Cloud (pendências fechadas).  
 **Contexto do time:** pouco acesso físico/remoto ao servidor do cliente; precisa de sistema robusto; MDVR = MettaX MC904; vídeo não sobe para a nuvem Borderless.
 
+**Atualização 2026-09-18:** cliente informou também o gravador **Hikvision AE-MD5043-SD/I/GLF/WI58**. O PDF recebido junto (`Manual 401 PTBR.pdf`) identifica-se como **MettaX MC401**, não como Hikvision AE-MD5043. A arquitetura abaixo continua válida, mas a integração do novo equipamento deve entrar como adapter pendente até confirmação do modelo/manual/API corretos.
+
+**Pesquisa técnica consolidada 2026-09-18:** o retorno `Full_Lock_Pesquisa_Tecnica.pdf` trouxe evidência suficiente para iniciar dois spikes reais: Hikvision AE-MD5043 por ISAPI/HCNetSDK e MettaX MC904/MC401 por JT/T1078 histórico com FTP local.
+
 ---
 
 ## 1. Resumo em uma frase (da proposta)
@@ -499,10 +503,29 @@ Depois: FFmpeg/15 min (MVP-B), exportador terceirizada, segundo modelo MDVR.
 | --- | --- |
 | Domínio, dashboard, ingestão **simulada** | Spec OpenAPI `agent-api@v1` + Agent stub Docker (heartbeat/events/commands) |
 | Adapter `mettax-mc904` (`ready: false`) | Spike hardware/CMS; só então implementação de transferência |
+| Novo equipamento informado: Hikvision AE-MD5043 | Adapter planejado `hikvision-ae-md5043`, ainda `transfer=unknown`; pedir manual técnico correto/SDK |
+| PDF `Manual 401 PTBR.pdf` | Tratar como referência de instalação do MC401 e divergência documental; não desbloqueia ingestão |
 | Firestore/metadados de fase | Endpoints activate/register/heartbeat/events/commands |
 | Docs de contexto | Instalador + ativação (fase implantação) |
 
 **Não** tratar o pipeline simulado no SPA como Agent de produção — é protótipo de fluxo/UX até existir binário no servidor do cliente.
+
+### 13.1 Arquitetura revisada após pesquisa técnica
+
+O Agent deve suportar dois modos de integração:
+
+| Modo | Modelos | Quem inicia | Componentes locais |
+| --- | --- | --- | --- |
+| Pull LAN | Hikvision AE-MD5043 | Agent | ISAPI client, media store, registry serial -> veículo |
+| Terminal initiated | MettaX MC904/MC401 | Equipamento | JT/T TCP listener, FTP receiver local, media store |
+
+Implementação recomendada:
+
+1. Adapter Hikvision ISAPI como primeiro caminho de download real.
+2. Spike JT/T1078 MettaX em paralelo, sem marcar `ready: true` antes de hardware.
+3. HCNetSDK só entra se ISAPI falhar no firmware real.
+4. RTSP fica fora do motor de descarga histórica.
+5. FTP só entra no fluxo MettaX como destino local comandado por JT/T1078 `0x9206`.
 
 ---
 
@@ -515,6 +538,15 @@ Depois: FFmpeg/15 min (MVP-B), exportador terceirizada, segundo modelo MDVR.
 - [ ] Se o terminal **inicia** a conexão (client) ou espera (server)  
 - [ ] Se JT/T1078 cobre download histórico completo via Wi-Fi Station  
 - [ ] Ferramenta CMS / senha admin / procedimento por unidade  
+
+### Fornecedor Hikvision / novo equipamento
+
+- [ ] Confirmar se o equipamento é **AE-MD5043-SD/I/GLF/WI58** e se o manual correto foi enviado  
+- [ ] Enviar manual técnico/API/SDK do modelo correto  
+- [ ] Confirmar se suporta ISAPI, SDK Hikvision, JT/T808/JT/T1078, GB/T ou outro protocolo para vídeo histórico  
+- [ ] Confirmar download de gravações pela LAN/Wi-Fi da garagem  
+- [ ] Informar autenticação, terminal ID, associação com veículo e procedimento de configuração  
+- [ ] Confirmar se o `MC401` do PDF também fará parte da operação  
 
 ### Cliente (infra da base)
 
