@@ -151,12 +151,12 @@ export function VehiclePage() {
               <p className="text-sm leading-6 text-ink-muted">
                 Última base {data.lastSeenGarage?.name ?? '—'} · Última conexão {formatDateTime(data.vehicle.lastConnectionAt)} · Última sincronização {formatDateTime(data.vehicle.lastSyncAt)}
               </p>
-              <section className="rounded-2xl border border-line bg-white p-5">
+              <section className="rounded-lg border border-line bg-white p-5">
                 <h2 className="mb-3 text-base font-semibold tracking-tight">Equipamento e câmeras</h2>
                 <p>{data.device ? `${data.device.model} · ${data.device.serial} · firmware ${data.device.firmware} · ${data.device.ip} · ${data.device.mac}` : 'Sem equipamento associado.'}</p>
                 <p>{data.cameras.map((camera) => camera.name).join(' · ') || 'Sem câmeras.'}</p>
               </section>
-              <section className="rounded-2xl border border-line bg-white p-5">
+              <section className="rounded-lg border border-line bg-white p-5">
                 <h2 className="mb-3 text-base font-semibold tracking-tight">Histórico incremental (períodos)</h2>
                 <DataTable
                   rows={data.periodHistory}

@@ -12,10 +12,10 @@ O painel lê `VITE_API_MODE`. `firestore` grava no Firestore (banco desta fase).
 
 Demonstração, senha `borderless`:
 
-- `operador@lock.com` — operador
-- `admin@lock.com` — administrador
-- `auditor@lock.com` — auditor
-- `gestor@lock.com` — gestor
+- `operador@fulllock.local` — operador
+- `admin@fulllock.local` — administrador
+- `auditor@fulllock.local` — auditor
+- `gestor@fulllock.local` — gestor
 
 O operador entra no dashboard. A auditoria da placa ABC1D23 em 14/09/2026 mostra a lacuna da CAM02.
 

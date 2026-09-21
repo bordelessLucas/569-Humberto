@@ -117,7 +117,7 @@ export function PlayerPage() {
       <div className="mt-6 flex flex-col gap-4">
         <QueryState isLoading={detail.isLoading} error={detail.error}>
           {data ? (
-            <section className="grid gap-3 rounded-2xl border border-line bg-white p-5">
+            <section className="grid gap-3 rounded-lg border border-line bg-white p-5">
               <p>{data.vehicleName} · {data.plate} · {data.cameraName}</p>
               <p className="text-sm leading-6 text-ink-muted">Original: {data.original?.name ?? 'não vinculado'} · MP4: {data.file.kind === 'mp4' ? data.file.name : 'aguardando conversão automática'}</p>
               <div className="flex min-h-16 items-end gap-1" aria-label="Segmentos">
@@ -167,7 +167,7 @@ export function CameraAuditPage() {
         </form>
         <QueryState isLoading={coverage.isLoading} error={coverage.error}>
           {coverage.data ? (
-            <section className="rounded-2xl border border-line bg-white p-5">
+            <section className="rounded-lg border border-line bg-white p-5">
               <p>{coverage.data.vehicleName} · {coverage.data.plate} · {coverage.data.date}</p>
               {coverage.data.cameras.map((camera) => (
                 <div key={camera.cameraId} className="mt-4">

@@ -6,7 +6,7 @@ Atualizado após o novo levantamento com o cliente. Substitui a leitura anterior
 
 **Nome comercial atual:** Full Lock (o cliente pode alterar depois).  
 **Repositório / projeto técnico:** Humberto (`humberto-f88f5`).  
-**Marca visual:** logo oficial do cliente (Lock Brasil / Full Lock). Arquivos em tamanhos com e sem fundo — tratar como ativo de design; a interface pode usar o que já está em `public/` até receber o pacote completo.
+**Marca visual:** logo oficial do cliente Full Lock. Arquivos em tamanhos com e sem fundo — tratar como ativo de design; a interface pode usar o que já está em `public/` até receber o pacote completo.
 
 ---
 

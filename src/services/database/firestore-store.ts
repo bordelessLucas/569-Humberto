@@ -43,24 +43,24 @@ const META = {
 
 const PROVISION_APP = 'lock-provision'
 
-let ready: Promise<void> = Promise.resolve()
+let ready: Promise<void> | undefined
 let tail: Promise<void> = Promise.resolve()
 let dirty = false
 let timer: number | undefined
 
 export function startFirestoreStore(): Promise<void> {
-  ready = prepare()
-    .then(() => {
-      onStoreDirty(() => flushSoon())
-    })
-    .catch((error: unknown) => {
-      throw toApiError(error, 'Não foi possível abrir o Firestore.')
-    })
+  ready ??= prepare()
+      .then(() => {
+        onStoreDirty(() => flushSoon())
+      })
+      .catch((error: unknown) => {
+        throw toApiError(error, 'Não foi possível abrir o Firestore.')
+      })
   return ready
 }
 
 export function databaseReady(): Promise<void> {
-  return ready
+  return startFirestoreStore()
 }
 
 export async function provisionAuthUser(email: string, password: string): Promise<void> {
@@ -99,7 +99,7 @@ async function prepare(): Promise<void> {
   await ensureDemoAccounts()
   let provisional: string | null = null
   if (!signedIn) {
-    const credential = await signInWithEmailAndPassword(auth, 'admin@lock.com', DEMO_PASSWORD)
+    const credential = await signInWithEmailAndPassword(auth, 'admin@fulllock.local', DEMO_PASSWORD)
     provisional = credential.user.uid
   }
   try {
@@ -122,10 +122,10 @@ export function reloadFromFirestore(): Promise<void> {
 }
 
 const STANDARD_EMAILS: Record<string, string> = {
-  'user-admin': 'admin@lock.com',
-  'user-operador': 'operador@lock.com',
-  'user-auditor': 'auditor@lock.com',
-  'user-gestor': 'gestor@lock.com',
+  'user-admin': 'admin@fulllock.local',
+  'user-operador': 'operador@fulllock.local',
+  'user-auditor': 'auditor@fulllock.local',
+  'user-gestor': 'gestor@fulllock.local',
 }
 
 async function syncStandardProfiles(): Promise<boolean> {

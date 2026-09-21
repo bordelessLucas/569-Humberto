@@ -28,8 +28,7 @@ export function useDemoScenario() {
       play.mutate()
     },
     reset() {
-      demoClient?.reset()
-      void queryClient.invalidateQueries({ queryKey: queryKeys.all })
+      void demoClient?.reset().then(() => queryClient.invalidateQueries({ queryKey: queryKeys.all }))
     },
   }
 }

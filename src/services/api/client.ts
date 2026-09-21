@@ -1,37 +1,60 @@
 import type { DemoState } from '../../domain/types.ts'
-import { databaseReady } from '../database/firestore-store.ts'
 import type { FleetApi } from './contracts.ts'
-import { createFirestoreApi } from './firestore-api.ts'
-import { createHttpApi } from './http.ts'
-import { getDemoState, playArrival, resetDemo } from './mock/demo.ts'
-import { createMockApi } from './mock/handlers.ts'
 import { apiMode } from './mode.ts'
 
-export const api: FleetApi = createApi()
+let apiPromise: Promise<FleetApi> | undefined
+
+export const api = new Proxy(
+  {},
+  {
+    get(_target, key) {
+      return (...args: unknown[]) =>
+        getApi().then((client) => {
+          const method = client[key as keyof FleetApi]
+          if (typeof method !== 'function') throw new Error(`Metodo de API invalido: ${String(key)}`)
+          return (method as (...input: unknown[]) => unknown)(...args)
+        })
+    },
+  },
+) as FleetApi
 
 export interface DemoClient {
-  getState(): DemoState
+  getState(): Promise<DemoState>
   playArrival(onUpdate: () => void): Promise<void>
-  reset(): void
+  reset(): Promise<void>
 }
 
 export function getDemoClient(): DemoClient | null {
-  if (apiMode() === 'real') return null
+  if (apiMode() !== 'mock') return null
   return {
-    getState: getDemoState,
-    playArrival,
-    reset: resetDemo,
+    async getState() {
+      const demo = await import('./mock/demo.ts')
+      return demo.getDemoState()
+    },
+    async playArrival(onUpdate) {
+      const demo = await import('./mock/demo.ts')
+      await demo.playArrival(onUpdate)
+    },
+    async reset() {
+      const demo = await import('./mock/demo.ts')
+      demo.resetDemo()
+    },
   }
 }
 
 export function waitForDatabase(): Promise<void> {
   if (apiMode() !== 'firestore') return Promise.resolve()
-  return databaseReady()
+  return import('../database/firestore-store.ts').then((store) => store.databaseReady())
 }
 
-function createApi(): FleetApi {
+function getApi(): Promise<FleetApi> {
+  apiPromise ??= createApi()
+  return apiPromise
+}
+
+async function createApi(): Promise<FleetApi> {
   const mode = apiMode()
-  if (mode === 'real') return createHttpApi()
-  if (mode === 'firestore') return createFirestoreApi()
-  return createMockApi()
+  if (mode === 'real') return import('./http.ts').then((module) => module.createHttpApi())
+  if (mode === 'firestore') return import('./firestore-api.ts').then((module) => module.createFirestoreApi())
+  return import('./mock/handlers.ts').then((module) => module.createMockApi())
 }

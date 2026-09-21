@@ -2,7 +2,7 @@
 
 Auditoria visual/UX do dashboard. Escopo: polir apresentação. **Não** alterar regras de negócio, papéis, pipeline de ingestão ou dados.
 
-Leitura de design: painel operacional B2B Lock Brasil — P&B + vermelho só para sinal; densidade de cockpit moderada; Inter; raio 8px.
+Leitura de design: painel operacional B2B Full Lock — P&B + vermelho só para sinal; densidade de cockpit moderada; Inter; raio 8px.
 
 ## Achados (prioridade)
 

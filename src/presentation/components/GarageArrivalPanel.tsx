@@ -23,11 +23,21 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
 
   return (
     <section className="rounded-lg border border-line bg-white p-5" aria-label="Chegada na garagem">
-      <div className="mb-4 max-w-3xl">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-3xl">
         <h2 className="text-pretty text-base font-semibold tracking-tight text-ink">Chegada na base</h2>
         <p className="mt-1 text-sm leading-6 text-ink-muted">
-          Quando o MC904 entra no Wi-Fi da garagem, o servidor local detecta o veículo e puxa as gravações pendentes.
+          Quando o MC904 entra no Wi-Fi da garagem, o servidor local detecta o veículo e envia as gravações pendentes para a base de controle.
         </p>
+        </div>
+        {status && status.phase !== 'idle' ? (
+          <div className="grid min-w-[12rem] grid-cols-2 gap-2 rounded-lg border border-line bg-neutral-50 px-3 py-2 text-xs">
+            <span className="text-ink-muted">Arquivos</span>
+            <strong className="text-right tabular-nums text-ink">{status.filesStored}</strong>
+            <span className="text-ink-muted">Progresso</span>
+            <strong className="text-right tabular-nums text-ink">{status.progress}%</strong>
+          </div>
+        ) : null}
       </div>
 
       <form
@@ -75,7 +85,7 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
           </select>
         </label>
         <button className="btn btn-primary" type="submit" disabled={running || start.isPending} aria-busy={running || start.isPending}>
-          {running || start.isPending ? 'Ingestão em andamento…' : 'Veículo entrou no Wi-Fi'}
+          {running || start.isPending ? 'Envio em andamento...' : 'Simular chegada na base'}
         </button>
       </form>
 
@@ -113,7 +123,7 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
             <ProgressBar value={status.progress} />
           </div>
           {status.filesStored > 0 ? (
-            <p className="mt-2 text-xs tabular-nums text-ink-muted">{status.filesStored} arquivo(s) no servidor da base</p>
+            <p className="mt-2 text-xs tabular-nums text-ink-muted">{status.filesStored} arquivo(s) recebidos na base de controle</p>
           ) : null}
           <p className="mt-3 border-t border-line/80 pt-3 text-[11px] leading-5 text-ink-muted">{status.outOfScopeNote}</p>
         </div>

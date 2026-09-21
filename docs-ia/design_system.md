@@ -1,6 +1,6 @@
 # Design system
 
-Marca: **Lock Brasil**. Proposta: rastreamento e monitoramento. A logo em `arquivosContext/logoFullLock.png` é a fonte visual do produto. As lâminas de operação continuam valendo para densidade de painel, não para o nome "Full Lock" escrito na interface.
+Marca: **Full Lock**. Proposta: rastreamento e monitoramento. A logo em `arquivosContext/FullLockLogo.png` é a fonte visual do produto. As lâminas de operação continuam valendo para densidade de painel e para o uso controlado do nome "Full Lock" na interface.
 
 A marca é um cadeado de carvão com pin de localização e arco vermelho de sinal. Não é um alarme. A interface usa preto, branco e cinza. O vermelho só marca ação crítica, item ativo e erro.
 
@@ -87,7 +87,7 @@ Base de 4px.
 
 A base visual do painel está em `src/presentation`. Seguem os tokens deste arquivo:
 
-- Logo da Lock Brasil na placa branca da sidebar. Não redesenhar o cadeado em CSS
+- Logo da Full Lock na placa branca da sidebar. Não redesenhar o cadeado em CSS
 - Shell com grupos: Operação, Frota, Evidências, Sistema
 - Tagline da marca: Rastreamento e monitoramento. Não repetir no título de cada tela
 - Card de KPI com número, rótulo e participação
@@ -99,8 +99,8 @@ A base visual do painel está em `src/presentation`. Seguem os tokens deste arqu
 
 ## Referências
 
-- `arquivosContext/logoFullLock.png` — logo Lock Brasil
-- `public/logo-lock-brasil.png` — a mesma logo servida no painel
+- `arquivosContext/FullLockLogo.png` — logo Full Lock
+- `public/logo-full-lock.png` — a mesma logo servida no painel
 - `arquivosContext/WhatsApp Image 2026-09-10 at 17.52.35.jpeg` — arquitetura e dashboard
 - `arquivosContext/WhatsApp Image 2026-09-10 at 17.52.36 (1).jpeg` — fluxo e painel de descarga
 

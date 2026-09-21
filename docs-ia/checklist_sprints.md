@@ -10,7 +10,7 @@ Ordem de implementação (fonte: `contexto.md` §15): domínio → Edge Agent �
 - [x] Administrador, Operador, Auditor e Gestor, com matriz de acesso e 21 rotas
 - [x] Contrato REST, cliente HTTP e mock
 - [x] Firestore como banco desta fase, com Auth por e-mail. Senha fora do banco
-- [x] Perfis de teste `admin@lock.com`, `operador@lock.com`, `auditor@lock.com`, `gestor@lock.com`
+- [x] Perfis de teste `admin@fulllock.local`, `operador@fulllock.local`, `auditor@fulllock.local`, `gestor@fulllock.local`
 - [x] Modo demonstração da chegada do Caminhão 17
 - [x] Interface em preto, branco, cinza e vermelho, com a logo no quadro da sidebar
 - [x] Dashboard admin: KPIs, visão de garagens e relatório do dia (ainda com dados mock)

@@ -1,7 +1,7 @@
 import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import type { LoginInput, Session } from '../../domain/types.ts'
 import { getFirebaseApp } from '../firebase.ts'
-import { databaseReady, flushNow, provisionAuthUser, reloadFromFirestore, startFirestoreStore, toApiError } from '../database/firestore-store.ts'
+import { databaseReady, flushNow, provisionAuthUser, reloadFromFirestore, toApiError } from '../database/firestore-store.ts'
 import type { FleetApi } from './contracts.ts'
 import { ApiError } from './errors.ts'
 import { createMockApi } from './mock/handlers.ts'
@@ -9,7 +9,6 @@ import { getState, rememberSession } from './mock/store.ts'
 
 export function createFirestoreApi(): FleetApi {
   const mock = createMockApi()
-  void startFirestoreStore()
 
   return {
     ...mock,
@@ -92,7 +91,6 @@ async function login(input: LoginInput): Promise<Session> {
 }
 
 async function currentSession(): Promise<Session | null> {
-  await gate()
   const auth = getAuth(getFirebaseApp())
   await auth.authStateReady()
   const current = auth.currentUser
@@ -100,6 +98,7 @@ async function currentSession(): Promise<Session | null> {
     getState().session = null
     return null
   }
+  await gate()
   const user = getState().users.find((item) => item.email === current.email)
   if (!user?.active) return null
   const session: Session = {

@@ -1,49 +1,42 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { waitForDatabase } from '../../services/api/client.ts'
+import { api } from '../../services/api/client.ts'
 import { DEMO_PASSWORD } from '../../services/api/mode.ts'
 import { roleLabel } from '../access.ts'
 import { LogoFrame } from '../components/BrandLogo.tsx'
 import { errorMessage } from '../format.ts'
-import { useLogin } from '../hooks/useFleet.ts'
 
 const profiles = [
-  { role: 'admin', name: 'Ana Ribeiro', email: 'admin@lock.com', note: 'Prepara frota, usuários e storage' },
-  { role: 'operador', name: 'Bruno Costa', email: 'operador@lock.com', note: 'Acompanha chegada, fila e processamento' },
-  { role: 'auditor', name: 'Clara Nunes', email: 'auditor@lock.com', note: 'Investiga lacunas e gravações' },
-  { role: 'gestor', name: 'Diego Melo', email: 'gestor@lock.com', note: 'Consulta indicadores e vídeos' },
+  { role: 'admin', name: 'Ana Ribeiro', email: 'admin@fulllock.local', note: 'Prepara frota, usuários e storage' },
+  { role: 'operador', name: 'Bruno Costa', email: 'operador@fulllock.local', note: 'Acompanha chegada, fila e processamento' },
+  { role: 'auditor', name: 'Clara Nunes', email: 'auditor@fulllock.local', note: 'Investiga lacunas e gravações' },
+  { role: 'gestor', name: 'Diego Melo', email: 'gestor@fulllock.local', note: 'Consulta indicadores e vídeos' },
 ] as const
 
 export function LoginPage() {
-  const login = useLogin()
   const navigate = useNavigate()
   const [email, setEmail] = useState<string>(profiles[1].email)
   const [password, setPassword] = useState(DEMO_PASSWORD)
-  const [databaseError, setDatabaseError] = useState<string | null>(null)
-  const [databaseReady, setDatabaseReady] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let active = true
-    waitForDatabase()
-      .then(() => {
-        if (active) setDatabaseReady(true)
-      })
-      .catch((error: unknown) => {
-        if (active) setDatabaseError(errorMessage(error))
-      })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    login.mutate({ email, password }, { onSuccess: () => navigate('/dashboard') })
+    setPending(true)
+    setError(null)
+    try {
+      await api.login({ email, password })
+      navigate('/dashboard')
+    } catch (error) {
+      setError(errorMessage(error))
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
     <main className="grid min-h-screen place-items-center bg-canvas p-6">
-      <section className="grid w-full max-w-lg gap-5 rounded-2xl border border-line bg-white p-6">
+      <section className="grid w-full max-w-lg gap-5 rounded-lg border border-line bg-white p-6">
         <LogoFrame className="h-20" />
         <div className="grid gap-4">
         <p className="text-sm leading-6 text-ink-muted">Escolha o perfil. A senha dos quatro acessos é {DEMO_PASSWORD}.</p>
@@ -73,10 +66,9 @@ export function LoginPage() {
             Senha
             <input className="w-full" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
           </label>
-          {databaseError ? <p className="text-sm text-brand">{databaseError}</p> : null}
-          {login.error ? <p className="text-sm text-brand">{errorMessage(login.error)}</p> : null}
-          <button className="btn btn-primary" type="submit" disabled={login.isPending || !databaseReady}>
-            {databaseReady ? 'Entrar' : 'Abrindo o banco…'}
+          {error ? <p className="text-sm text-brand">{error}</p> : null}
+          <button className="btn btn-primary" type="submit" disabled={pending}>
+            {pending ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
         </div>

@@ -169,14 +169,14 @@ export function StoragePage() {
       <div className="mt-6 flex flex-col gap-4">
         <QueryState isLoading={storage.isLoading} error={storage.error}>
           {overview ? (
-            <section className="rounded-2xl border border-line bg-white p-5">
+            <section className="rounded-lg border border-line bg-white p-5">
               <p>{formatBytes(overview.status.usedBytes)} de {formatBytes(overview.status.capacityBytes)}. {overview.status.alert ? 'Alerta de capacidade aberto.' : 'Sem alerta de capacidade.'}</p>
               <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-neutral-200"><span className="block h-full bg-brand" style={{ width: `${used}%` }} /></div>
               <p className="text-sm leading-6 text-ink-muted">
                 Retenção de referência: {overview.policy.retentionDays} dias. Exclusão automática desligada nesta fase
                 {overview.policy.autoDelete ? ' (flag legado ainda ligada no store — política do produto: manual).' : '.'}
               </p>
-              {canEdit ? <button className="btn btn-danger" type="button" onClick={() => retention.mutate()}>Simular exclusão manual</button> : <p className="text-sm leading-6 text-ink-muted">Somente leitura.</p>}
+              {canEdit ? <button className="btn btn-danger" type="button" onClick={() => window.confirm('Simular exclusão de arquivos elegíveis? Arquivos protegidos serão mantidos.') && retention.mutate()}>Simular exclusão manual</button> : <p className="text-sm leading-6 text-ink-muted">Somente leitura.</p>}
               {retention.data ? <p className="text-sm leading-6 text-ink-muted">Excluídos: {retention.data.deleted}. Protegidos mantidos: {retention.data.keptProtected}.</p> : null}
             </section>
           ) : null}
@@ -258,7 +258,7 @@ export function SettingsPage() {
       <div className="mt-6 flex flex-col gap-4">
         <QueryState isLoading={settings.isLoading} error={settings.error}>
           {current ? (
-            <form className="grid gap-3 rounded-2xl border border-line bg-white p-5" onSubmit={(event) => {
+            <form className="grid gap-3 rounded-lg border border-line bg-white p-5" onSubmit={(event) => {
               event.preventDefault()
               const form = new FormData(event.currentTarget)
               update.mutate({

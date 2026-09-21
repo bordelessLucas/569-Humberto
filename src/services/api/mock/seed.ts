@@ -28,10 +28,10 @@ export function createSeed(): FleetStore {
   return {
     clockMinutes: 8 * 60,
     users: [
-      { id: 'user-admin', name: 'Ana Ribeiro', email: 'admin@lock.com', role: 'admin', active: true },
-      { id: 'user-operador', name: 'Bruno Costa', email: 'operador@lock.com', role: 'operador', active: true },
-      { id: 'user-auditor', name: 'Clara Nunes', email: 'auditor@lock.com', role: 'auditor', active: true },
-      { id: 'user-gestor', name: 'Diego Melo', email: 'gestor@lock.com', role: 'gestor', active: true },
+      { id: 'user-admin', name: 'Ana Ribeiro', email: 'admin@fulllock.local', role: 'admin', active: true },
+      { id: 'user-operador', name: 'Bruno Costa', email: 'operador@fulllock.local', role: 'operador', active: true },
+      { id: 'user-auditor', name: 'Clara Nunes', email: 'auditor@fulllock.local', role: 'auditor', active: true },
+      { id: 'user-gestor', name: 'Diego Melo', email: 'gestor@fulllock.local', role: 'gestor', active: true },
     ],
     credentials: [
       { userId: 'user-admin', password: 'borderless' },
