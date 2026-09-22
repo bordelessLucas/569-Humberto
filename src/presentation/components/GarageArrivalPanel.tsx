@@ -27,7 +27,7 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
         <div className="max-w-3xl">
         <h2 className="text-pretty text-base font-semibold tracking-tight text-ink">Chegada na base</h2>
         <p className="mt-1 text-sm leading-6 text-ink-muted">
-          Quando o MC904 entra no Wi-Fi da garagem, o servidor local detecta o veículo e envia as gravações pendentes para a base de controle.
+          Quando o equipamento entra no Wi-Fi da garagem, o Agent local detecta o veiculo, usa spool temporario e envia as gravacoes pendentes para a nuvem do cliente.
         </p>
         </div>
         {status && status.phase !== 'idle' ? (
@@ -123,7 +123,7 @@ export function GarageArrivalPanel({ enabled }: { enabled: boolean }) {
             <ProgressBar value={status.progress} />
           </div>
           {status.filesStored > 0 ? (
-            <p className="mt-2 text-xs tabular-nums text-ink-muted">{status.filesStored} arquivo(s) recebidos na base de controle</p>
+            <p className="mt-2 text-xs tabular-nums text-ink-muted">{status.filesStored} arquivo(s) enviados para a nuvem do cliente</p>
           ) : null}
           <p className="mt-3 border-t border-line/80 pt-3 text-[11px] leading-5 text-ink-muted">{status.outOfScopeNote}</p>
         </div>

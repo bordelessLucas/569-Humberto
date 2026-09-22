@@ -12,6 +12,8 @@ export const DEMO_STEPS: DemoState['steps'] = [
   { id: 'interrupt', label: 'Interrupção', done: false },
   { id: 'reconnect', label: 'Reconexão', done: false },
   { id: 'resume', label: 'Resume', done: false },
+  { id: 'upload', label: 'Upload nuvem', done: false },
+  { id: 'verify', label: 'Validacao upload', done: false },
   { id: 'mp4', label: 'MP4', done: false },
   { id: 'segments', label: '15 min', done: false },
   { id: 'audit', label: 'Auditoria', done: false },
@@ -270,8 +272,8 @@ export function createSeed(): FleetStore {
       alert: false,
     },
     storagePolicy: {
-      retentionDays: 90,
-      autoDelete: false,
+      retentionDays: 7,
+      autoDelete: true,
       alertThresholdPercent: 85,
     },
     settings: {
@@ -279,9 +281,9 @@ export function createSeed(): FleetStore {
       segmentMinutes: 15,
       alertOnGap: true,
       alertOnCapacity: true,
-      retentionDays: 90,
+      retentionDays: 7,
       integrationStatus: 'aguardando_fabricante',
-      integrationNote: 'Aguardando datasheet do primeiro MDVR. Exclusão de vídeo é manual nesta fase. Vídeos não sobem para a nuvem.',
+      integrationNote: 'Arquitetura atual: Agent local leve na garagem, spool temporario e envio para object storage do cliente. Provedor cloud ainda pendente.',
     },
     activity: [
       {

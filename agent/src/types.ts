@@ -33,6 +33,10 @@ export interface AgentConfig {
   heartbeatSeconds: number
   commandsWaitSeconds: number
   storagePath: string
+  retentionDays: number
+  maxConcurrentVehicles: number
+  maxConcurrentDownloads: number
+  maxConcurrentUploads: number
 }
 
 export interface ActivationResponse {
@@ -76,4 +80,18 @@ export interface LocalState {
   bufferedEvents: AgentEvent[]
   lastSessionId: string | null
   sequence: number
+}
+
+export type TransferStageStatus = 'queued' | 'running' | 'completed' | 'failed'
+export type VerificationStatus = 'not_available' | 'pending' | 'verified' | 'failed'
+
+export interface CloudObjectRef {
+  provider: 'mock' | 'customer-cloud'
+  bucket: string
+  key: string
+  sizeBytes: number
+  checksum: string | null
+  uploadedAt: string
+  expiresAt: string
+  verificationStatus: VerificationStatus
 }

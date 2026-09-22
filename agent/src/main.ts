@@ -29,6 +29,10 @@ async function activateOrRegister(): Promise<void> {
         heartbeatSeconds: env.heartbeatSeconds || activation.config.heartbeatSeconds,
         commandsWaitSeconds: activation.config.commandsWaitSeconds,
         storagePath: env.storagePath || activation.config.storagePath,
+        retentionDays: activation.config.retentionDays || env.retentionDays,
+        maxConcurrentVehicles: activation.config.maxConcurrentVehicles || env.maxConcurrentVehicles,
+        maxConcurrentDownloads: activation.config.maxConcurrentDownloads || env.maxConcurrentDownloads,
+        maxConcurrentUploads: activation.config.maxConcurrentUploads || env.maxConcurrentUploads,
       },
     })
     log('agent activated', { garageId: activation.garageId, tenantId: activation.tenantId })
@@ -61,6 +65,7 @@ const simulator = new ArrivalSimulator(
   (sessionId) => store.setLastSessionId(sessionId),
   sendOrBuffer,
   () => store.snapshot().policy,
+  () => store.snapshot(),
 )
 
 await activateOrRegister()

@@ -201,6 +201,46 @@ async function applyStep(store: FleetStore, stepId: string): Promise<void> {
     return
   }
 
+  if (stepId === 'upload') {
+    const job = firstJob(store)
+    if (!job) return
+    job.status = 'enviando_nuvem'
+    job.downloadFromDeviceStatus = 'baixado'
+    job.uploadToCloudStatus = 'enviando'
+    job.verificationStatus = 'pendente'
+    job.bytesUploaded = Math.round(job.bytesTotal * 0.72)
+    vehicle.operationalStatus = 'baixando'
+    pushActivity(store, {
+      type: 'transfer.progress',
+      vehicleId: vehicle.id,
+      message: 'Download local concluido. Upload para a nuvem do cliente em andamento.',
+    })
+    return
+  }
+
+  if (stepId === 'verify') {
+    const job = firstJob(store)
+    if (!job) return
+    const uploadedAt = stamp(store)
+    const expiresAt = addDaysIso(uploadedAt, store.storagePolicy.retentionDays)
+    job.status = 'validando_upload'
+    job.uploadToCloudStatus = 'concluido'
+    job.verificationStatus = 'validado'
+    job.bytesUploaded = job.bytesTotal
+    job.uploadedSize = job.bytesTotal
+    job.sourceSize = job.bytesTotal
+    job.checksum = 'simulated-checksum-pending-real-device'
+    job.cloudObjectKey = 'client-enel/garage-centro/veh-17/2026/09/14/dev-17/camera-1/CAM17-FRONTAL-20260914-0800.raw'
+    job.uploadedAt = uploadedAt
+    job.expiresAt = expiresAt
+    pushActivity(store, {
+      type: 'file.available',
+      vehicleId: vehicle.id,
+      message: 'Upload validado na nuvem do cliente. Retencao configurada para 7 dias.',
+    })
+    return
+  }
+
   if (stepId === 'reconnect') {
     const at = stamp(store)
     vehicle.operationalStatus = 'conectado'
@@ -445,7 +485,7 @@ async function applyStep(store: FleetStore, stepId: string): Promise<void> {
     pushActivity(store, {
       type: 'file.available',
       vehicleId: vehicle.id,
-      message: 'Arquivo disponível e indexado. 16 itens seguem na fila.',
+      message: 'Arquivo disponivel na nuvem do cliente e indexado no dashboard. 16 itens seguem na fila.',
     })
   }
 }
@@ -506,4 +546,10 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms)
   })
+}
+
+function addDaysIso(value: string, days: number): string {
+  const date = new Date(value)
+  date.setDate(date.getDate() + days)
+  return date.toISOString()
 }

@@ -8,6 +8,10 @@ services:
       STORAGE_PATH: /data/garage-media
       HEARTBEAT_SECONDS: "10"
       SIM_ARRIVAL_SECONDS: "60"
+      RETENTION_DAYS: "7"
+      MAX_CONCURRENT_VEHICLES: "2"
+      MAX_CONCURRENT_DOWNLOADS: "2"
+      MAX_CONCURRENT_UPLOADS: "2"
       ORIGIN: simulado
     volumes:
       - garage-media:/data/garage-media
@@ -21,6 +25,7 @@ services:
     environment:
       PORT: "8787"
       ACTIVATION_CODE: BRD-DEMO-0001
+      RETENTION_DAYS: "7"
     ports:
       - "8787:8787"
     restart: unless-stopped

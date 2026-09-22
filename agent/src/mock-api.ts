@@ -94,6 +94,10 @@ function activationResponse() {
       heartbeatSeconds: env.heartbeatSeconds,
       commandsWaitSeconds: 25,
       storagePath: env.storagePath,
+      retentionDays: env.retentionDays,
+      maxConcurrentVehicles: env.maxConcurrentVehicles,
+      maxConcurrentDownloads: env.maxConcurrentDownloads,
+      maxConcurrentUploads: env.maxConcurrentUploads,
     },
   }
 }

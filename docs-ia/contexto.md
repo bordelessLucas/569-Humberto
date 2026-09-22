@@ -2,6 +2,8 @@
 
 Documento mestre do produto. Fonte de verdade para agentes e desenvolvedores.
 
+> Atualizacao critica em 2026-09-22: a premissa de armazenamento definitivo em servidor local da garagem foi substituida. O cliente nao tera servidor local para guardar videos; havera somente um Agent local leve para enxergar os equipamentos no Wi-Fi e transferir os arquivos para cloud storage contratado pelo cliente. Ver `docs-ia/auditoria_cloud_agent_2026-09-22.md`.
+
 Atualizado após o novo levantamento com o cliente. Substitui a leitura anterior que tratava o entregável principalmente como “painel Firebase”. Informações antigas que continuam válidas foram preservadas; hipóteses não confirmadas foram rebaixadas a pendência ou removidas como requisito.
 
 **Nome comercial atual:** Full Lock (o cliente pode alterar depois).  

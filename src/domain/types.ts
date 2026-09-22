@@ -29,10 +29,22 @@ export type DownloadSessionStatus =
 export type TransferStatus =
   | 'na_fila'
   | 'baixando'
+  | 'baixado'
+  | 'enviando_nuvem'
+  | 'validando_upload'
   | 'pausado'
   | 'interrompido'
   | 'concluido'
   | 'erro'
+
+export type CloudTransferStatus =
+  | 'nao_iniciado'
+  | 'na_fila'
+  | 'enviando'
+  | 'concluido'
+  | 'erro'
+
+export type UploadVerificationStatus = 'nao_disponivel' | 'pendente' | 'validado' | 'falhou'
 
 export type PeriodSyncStatus = 'disponivel' | 'pendente' | 'baixado' | 'falhou' | 'parcial'
 
@@ -189,10 +201,20 @@ export interface Transfer {
   recordingId: string
   priority: number
   status: TransferStatus
+  downloadFromDeviceStatus?: TransferStatus
+  uploadToCloudStatus?: CloudTransferStatus
+  verificationStatus?: UploadVerificationStatus
   progress: number
   attempts: number
   resumeOffsetBytes: number
   bytesTotal: number
+  bytesUploaded?: number
+  sourceSize?: number | null
+  uploadedSize?: number | null
+  checksum?: string | null
+  cloudObjectKey?: string | null
+  uploadedAt?: string | null
+  expiresAt?: string | null
   origin: DataOrigin
 }
 
@@ -240,6 +262,10 @@ export interface MediaFile {
   kind: FileKind
   originalFileId: string | null
   path: string
+  cloudObjectKey?: string | null
+  uploadedAt?: string | null
+  expiresAt?: string | null
+  verificationStatus?: UploadVerificationStatus
   name: string
   status: FileStatus
   protected: boolean
